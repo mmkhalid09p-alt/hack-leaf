@@ -4,67 +4,58 @@ Guidance for Claude Code when working in this repository.
 
 ## Project
 
-NeuroDev Therapy (`autismhealthcare`) — a Next.js web app providing detection screeners and
-gamified, module-based therapies for Autism Spectrum Disorder and Dyslexia.
+NeuroLearn — a single-screen, sensory-load-adaptive revision app for SEN / neurodiverse
+learners. Paste a topic, set how your brain feels (1–10), and Gemini rewrites the content
+to match. Duolingo-inspired UI with Framer Motion animations.
 
-See [`PRODUCT_PLAN.md`](./PRODUCT_PLAN.md) for the NeuroLearn direction — a sensory-load-adaptive
-learning experience (load meter, deaf mode, colour-blind palettes, sand mode, Gemini-driven
-content, flash cards, and a companion browser extension) layered on top of this codebase.
+Core features (non-negotiable):
+- **Sensory meter** — permanent 1–10 slider; the entire UI and content morph with it
+- **Gemini content adapter** — one engineered prompt, rewrites per load level
+- **Deaf mode** — visual-only; audio replaced with visual cues
+- **Colour blind mode** — 3 palettes + shape-coded indicators (never colour-only)
+- **Sand mode** — sandy palette + slow, unhurried AI tone
+- **Load 10** — no teaching; inline calm message + breathing guide (not a separate page)
 
 ## Stack
 
 - Next.js 15 (App Router) + React 19 + TypeScript
-- Tailwind CSS v4, Shadcn/UI (Radix primitives) components in `src/components/ui`
-- Framer Motion for animation, Lucide/react-icons for icons
-- Supabase (`@supabase/supabase-js`, `@supabase/auth-helpers-nextjs`) for auth + database
+- Tailwind CSS v4 (CSS-first config in `globals.css`), Framer Motion, Lucide icons
+- Gemini via Vercel AI SDK (`@ai-sdk/google`, `ai`)
 
 ## Commands
 
 ```bash
-npm run dev      # start dev server (http://localhost:3000)
-npm run build    # production build
-npm run start    # run production build
-npm run lint     # next lint
+npm run dev   # start dev server (http://localhost:3000)
+npm run build # production build
+npm run lint  # next lint
 ```
 
-No test suite is configured yet.
+No test suite is configured.
 
 ## Structure
 
 ```
 src/
-  app/                       # App Router routes
-    page.tsx                 # landing page
-    layout.tsx               # root layout
-    AuthPage/                # login/signup
-    auth/callback/           # supabase auth callback
-    auth/reset-password/
-    complete-profile/
-    dashboard/                # gated behind auth (see middleware.ts)
-    detection/                 # detection test page
-    autism/                    # autism hub + therapy modules
-      behavioral-training/ cognitive-skills/ communication-skills/
-      language-literacy/ social-skills/
-    dyslexia/                  # dyslexia hub
-    about/
-  components/ui/             # Shadcn-style reusable components
+  app/
+    page.tsx           # the whole app — single screen, no routing
+    layout.tsx         # root layout (Nunito font, AccessibilityProvider)
+    globals.css        # Tailwind + custom slider styles
+    api/learn/route.ts # Gemini streaming endpoint (topic + loadLevel + sandMode)
+  components/ui/
+    BreathingCircle.tsx # visual breathing guide used at load 10
+  context/
+    AccessibilityContext.tsx # deafMode / colourBlindMode / sandMode / sensoryLoad (localStorage)
   lib/
-    supabaseClient.ts         # Supabase client (reads NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY)
-    utils.ts
+    gemini.ts             # Gemini model factory
+    sensoryLoad.ts        # 1–10 → low/mid/high/max band mapping
+    colourBlindPalettes.ts # the 3 colour blind palettes
 ```
 
 - Path alias: `@/*` → `./src/*` (see `tsconfig.json`).
-- `middleware.ts` redirects unauthenticated requests to `/dashboard/*` back to `/AuthPage`
-  using a Supabase session check.
-- Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  (`src/lib/supabaseClient.ts` throws if either is missing).
-- Optional (server-only): `GOOGLE_GENERATIVE_AI_API_KEY` — Gemini via AI Studio
-  (`src/lib/gemini.ts`, `src/app/api/chat/route.ts`). Do not expose with `NEXT_PUBLIC_`.
+- Required env var: `GOOGLE_GENERATIVE_AI_API_KEY` (server-only, never `NEXT_PUBLIC_`).
 
 ## Conventions
 
-- Components: PascalCase filenames (e.g. `TherapyCard.tsx`).
-- Static assets: lowercase-hyphenated filenames (e.g. `hero-bg.png`), stored under `public/`.
-- Tailwind utility-first styling; prefer existing `components/ui` primitives over new ad-hoc ones.
-- New therapy/detection modules follow the existing per-condition page structure under
-  `src/app/autism/*` and `src/app/dyslexia/*`.
+- Single screen: do not add routes or pages; new UI goes into `page.tsx` or a small component.
+- Every visual state must respect all four accessibility modes (deaf, colour blind, sand, load band).
+- Never use red/green alone to convey meaning; pair colour with shapes or text.

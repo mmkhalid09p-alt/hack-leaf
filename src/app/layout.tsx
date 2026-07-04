@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 import { AccessibilityProvider } from "@/context/AccessibilityContext";
-import { StudentDataProvider } from "@/context/StudentDataContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
   title: "NeuroLearn",
-  description: "NeuroLearn is a sensory-load-adaptive learning platform for neurodiverse learners — with adjustable sensory load, deaf mode, colour-blind palettes, sand mode, and AI-driven, personalised content.",
+  description:
+    "Paste any topic, set how your brain feels right now, and get revision content that actually works for you. Built for SEN and neurodiverse learners.",
 };
 
 export default function RootLayout({
@@ -26,14 +22,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AccessibilityProvider>
-          <StudentDataProvider>
-            {children}
-          </StudentDataProvider>
-        </AccessibilityProvider>
+      <body className={`${nunito.variable} antialiased`}>
+        <AccessibilityProvider>{children}</AccessibilityProvider>
       </body>
     </html>
   );
