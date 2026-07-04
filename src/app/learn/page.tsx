@@ -8,6 +8,7 @@ import { VisualCueFlash, VisualCueFlashHandle } from "@/components/ui/VisualCueF
 import { Navbar } from "@/components/ui/navbar";
 import { Volume2, VolumeX, Settings, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { CalmScreen } from "@/components/ui/CalmScreen";
 
 // Sensory load → label & emoji
 const LOAD_META: Record<number, { label: string; emoji: string; colour: string }> = {
@@ -61,6 +62,12 @@ export default function LearnPage() {
 
   return (
     <>
+      {/* Level 10 Takeover Screen */}
+      <AnimatePresence>
+        {sensoryLoad === 10 && (
+          <CalmScreen deafMode={deafMode} onExit={() => setSensoryLoad(3)} />
+        )}
+      </AnimatePresence>
       {/* Global visual cue flash overlay */}
       <VisualCueFlash ref={flashRef} colour="#7c3aed" />
 
