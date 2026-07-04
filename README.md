@@ -1,17 +1,18 @@
 <div align="center">
 
-# 🧠 NEURODEV THERAPY 🎮  
+# 🧠 NEUROLEARN 🎮  
 <p align="center">
-  <img src="/public/images/nav.png" alt="NeuroDev Therapy Banner" /> <br/>
+  <img src="/public/images/nav.png" alt="NeuroLearn Banner" /> <br/>
 </p>
-Helping detect & support **Autism** and **Dyslexia** through engaging module-based therapies
+A sensory-load-adaptive learning platform for neurodiverse learners
 
 ## 📌 Overview
 
-Neurodev Therapy is an open-source project designed to:
-- Detect **Autism Spectrum Disorder (ASD)** and **Dyslexia**
-- Provide **module-based therapies** tailored to each condition
-- Engage users with gamified, interactive learning experiences
+NeuroLearn is an open-source project designed to:
+- Adapt content and UI to each learner's **sensory load**
+- Provide accessibility modes: **deaf mode**, **colour-blind palettes**, and **sand mode**
+- Deliver **AI-driven, personalised** learning with detection screeners and module-based therapies
+- Support **Autism Spectrum Disorder (ASD)** and **Dyslexia**
 
 ---
 

@@ -259,7 +259,7 @@ export default function AuthPage() {
                       className="flex items-center justify-center mb-6"
                     >
                       <Brain className="w-16 h-16 mr-4 text-white drop-shadow-lg" />
-                      <h1 className="text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">NeuroDev</h1>
+                      <h1 className="text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">NeuroLearn</h1>
                     </motion.div>
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
@@ -290,7 +290,7 @@ export default function AuthPage() {
                   >
                     <div className="flex items-center justify-center mb-4 lg:hidden">
                       <Brain className="w-12 h-12 text-green-600 mr-3" />
-                      <h1 className="text-3xl font-bold text-gray-900">NeuroDev</h1>
+                      <h1 className="text-3xl font-bold text-gray-900">NeuroLearn</h1>
                     </div>
                     <motion.h2
                       key={isLogin ? "login" : "signup"}

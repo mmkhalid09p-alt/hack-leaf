@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NeuroDev Therapy",
-  description: "Neurodev Therapy is an open-source project designed to Detect Autism Spectrum Disorder (ASD) and Dyslexia Provide module-based therapies tailored to each condition Engage users with gamified, interactive learning experiences",
+  title: "NeuroLearn",
+  description: "NeuroLearn is a sensory-load-adaptive learning platform for neurodiverse learners — with adjustable sensory load, deaf mode, colour-blind palettes, sand mode, and AI-driven, personalised content.",
 };
 
 export default function RootLayout({
