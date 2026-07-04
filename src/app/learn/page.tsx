@@ -12,6 +12,8 @@ import { Navbar } from "@/components/ui/navbar";
 import SensorySlider from "@/components/learn/SensorySlider";
 import { ContentRenderer } from "@/components/learn/ContentRenderer";
 import CalmOverlay from "@/components/learn/CalmOverlay";
+import { QuizPanel } from "@/components/learn/QuizPanel";
+import { FlashCardDeck } from "@/components/learn/FlashCardDeck";
 import { Settings } from "lucide-react";
 
 export default function LearnPage() {
@@ -395,6 +397,37 @@ export default function LearnPage() {
                 </motion.div>
               </AnimatePresence>
             </section>
+          )}
+
+          {/* Quiz Mode — load 1-3 only, disappears at load 4+ */}
+          {topic && !isGenerating && band === "low" && (
+            <QuizPanel
+              key={`quiz-${topic}`}
+              topic={topic}
+              loadLevel={sensoryLoad}
+              hyperfocusInterest={hyperfocusInterest || undefined}
+              learningDifference={
+                learningDifference !== "none" ? learningDifference : undefined
+              }
+              sandMode={sandMode}
+              palette={!sandMode ? cbPalette : null}
+            />
+          )}
+
+          {/* Automatic Flash Cards — load 1-6, lower-pressure than Quiz Mode */}
+          {topic && !isGenerating && (band === "low" || band === "mid") && (
+            <FlashCardDeck
+              key={`flashcards-${topic}`}
+              topic={topic}
+              loadLevel={sensoryLoad}
+              hyperfocusInterest={hyperfocusInterest || undefined}
+              learningDifference={
+                learningDifference !== "none" ? learningDifference : undefined
+              }
+              sandMode={sandMode}
+              deafMode={deafMode}
+              palette={!sandMode ? cbPalette : null}
+            />
           )}
         </div>
       </main>
