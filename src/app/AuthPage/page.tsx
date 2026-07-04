@@ -26,6 +26,7 @@ export default function AuthPage() {
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
     feedback: "",
+    strengthColor: "",
     checks: {
       length: false,
       lowercase: false,
