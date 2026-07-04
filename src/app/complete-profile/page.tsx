@@ -102,15 +102,16 @@ export default function CompleteProfilePage() {
       setTimeout(() => {
         router.replace("/dashboard");
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
+      const errorObj = err as Error;
       // SECURITY IMPROVEMENT: Sanitize error messages
-      const sanitizedError = err.message?.includes('duplicate')
+      const sanitizedError = errorObj.message?.includes('duplicate')
         ? "Profile already exists. Redirecting to dashboard..."
-        : err.message || "Profile creation failed";
+        : errorObj.message || "Profile creation failed";
       setError(sanitizedError);
 
       // If profile already exists, redirect anyway
-      if (err.message?.includes('duplicate')) {
+      if (errorObj.message?.includes('duplicate')) {
         setTimeout(() => {
           router.replace("/dashboard");
         }, 2000);

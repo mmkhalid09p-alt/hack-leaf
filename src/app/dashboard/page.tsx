@@ -113,7 +113,6 @@ export default function Dashboard() {
   const [form, setForm] = useState<Profile | null>(null);
   const [editing, setEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -228,55 +227,9 @@ export default function Dashboard() {
       setProfile({ ...form });
       setEditing(false);
       setSuccess("Profile updated successfully!");
-    } catch (err: any) {
-      setError(err.message || "Profile update failed");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Confirm password and update
-  const handleConfirm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setError("");
-    setSuccess("");
-    try {
-      if (!profile || !form) throw new Error("No profile info");
-      // Re-authenticate
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (!user || userError) throw new Error("User not found");
-
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email: profile.email,
-        password,
-      });
-      if (loginError) throw new Error("Password incorrect");
-
-      // Update email if changed
-      if (form.email && form.email !== profile.email) {
-        const { error: emailError } = await supabase.auth.updateUser({ email: form.email });
-        if (emailError) throw emailError;
-      }
-
-      // Update profile details
-      const { error: profileError } = await supabase
-        .from("user_profiles")
-        .update({
-          first_name: form.first_name,
-          last_name: form.last_name,
-          age: form.age ? Number(form.age) : null,
-          location: form.location,
-        })
-        .eq("id", user.id);
-      if (profileError) throw profileError;
-
-      setProfile({ ...form });
-      setEditing(false);
-      setSuccess("Profile updated successfully!");
-      setPassword("");
-    } catch (err: any) {
-      setError(err.message || "Update failed");
+    } catch (err) {
+      const errorObj = err as Error;
+      setError(errorObj.message || "Profile update failed");
     } finally {
       setSaving(false);
     }
@@ -314,11 +267,12 @@ export default function Dashboard() {
       // Clear form data after successful submission
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordModal(false);
-    } catch (err: any) {
+    } catch (err) {
+      const errorObj = err as Error;
       // SECURITY FIX: Sanitize error messages to prevent information disclosure
-      const sanitizedMessage = err.message?.includes('Invalid')
+      const sanitizedMessage = errorObj.message?.includes('Invalid')
         ? "Invalid credentials. Please check your current password."
-        : err.message || "Password change failed";
+        : errorObj.message || "Password change failed";
       setError(sanitizedMessage);
       // Clear form data even on error to prevent persisting wrong data
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -351,8 +305,9 @@ export default function Dashboard() {
       setTimeout(() => {
         router.replace("/AuthPage");
       }, 2000);
-    } catch (err: any) {
-      setDeleteError(err.message || "Account deletion failed");
+    } catch (err) {
+      const errorObj = err as Error;
+      setDeleteError(errorObj.message || "Account deletion failed");
     } finally {
       setDeleting(false);
     }
@@ -400,10 +355,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-wrap gap-2 sm:gap-4">
                   <button
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                      router.replace("/AuthPage");
-                    }}
+                    onClick={handleLogout}
                     className="flex items-center gap-2 px-3 lg:px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors text-sm lg:text-base"
                   >
                     <LogOut className="w-4 h-4" />
@@ -923,7 +875,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      To confirm, type: <span className="font-mono bg-gray-100 px-2 py-1 rounded text-red-600">"{deleteConfirmationPhrase}"</span>
+                      To confirm, type: <span className="font-mono bg-gray-100 px-2 py-1 rounded text-red-600">&quot;{deleteConfirmationPhrase}&quot;</span>
                     </label>
                     <input
                       type="text"
