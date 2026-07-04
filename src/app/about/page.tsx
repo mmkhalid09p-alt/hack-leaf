@@ -12,7 +12,7 @@ export default function AboutPage() {
   const sections = [
     {
       title: "Our Mission",
-      text: "At NeuroDev Therapy, we are dedicated to providing accessible, science-backed therapy tools for individuals with neurodevelopmental challenges.",
+      text: "At NeuroLearn, we are dedicated to providing accessible, science-backed therapy tools for individuals with neurodevelopmental challenges.",
       icon: <Target className="w-6 h-6 text-green-500" />,
       bg: "from-green-100 to-green-50",
       border: "border-green-200",
@@ -61,7 +61,7 @@ export default function AboutPage() {
         <div className="relative inline-block rounded-xl shadow-md border-2 border-white/30 backdrop-blur-sm bg-gradient-to-br from-green-100/50 to-blue-100/50">
           <Image
             src="/aboutImages/logo.png"
-            alt="NeuroDev Logo"
+            alt="NeuroLearn Logo"
             width={72}
             height={72}
             className="rounded-xl"
@@ -77,7 +77,7 @@ export default function AboutPage() {
         className="text-center mb-10"
       >
         <h1 className="text-4xl sm:text-5xl font-extrabold text-green-700">
-          About NeuroDev Therapy
+          About NeuroLearn
         </h1>
         <p className="mt-4 text-lg sm:text-xl text-gray-600 font-medium max-w-3xl mx-auto">
           Empowering individuals through innovative digital therapy, tailored to

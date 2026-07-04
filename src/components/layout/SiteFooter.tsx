@@ -8,7 +8,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-2 md:gap-4 lg:flex-1">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Brain className="h-6 w-6" />
-            <span>NeuroDev Therapy</span>
+            <span>NeuroLearn</span>
           </Link>
           <p className="text-sm text-gray-500 md:text-base">
             Detection, therapy modules, and NeuroLearn — adaptive learning for
@@ -60,7 +60,7 @@ export function SiteFooter() {
       <div className="border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-sm text-gray-500 md:text-left">
-            © {new Date().getFullYear()} NeuroDev Therapy. All rights reserved.
+            © {new Date().getFullYear()} NeuroLearn. All rights reserved.
           </p>
         </div>
       </div>

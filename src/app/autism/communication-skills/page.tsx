@@ -105,7 +105,7 @@ export default function CommunicationSkillsModule() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/autism" className="flex items-center gap-2 font-semibold">
             <Brain className="h-6 w-6" />
-            <span>NeuroDev Therapy</span>
+            <span>NeuroLearn</span>
           </Link>
           <div className="flex items-center gap-4">
             <div className="text-sm">
@@ -199,7 +199,7 @@ export default function CommunicationSkillsModule() {
       <footer className="border-t bg-slate-50">
         <div className="container py-6">
           <p className="text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} NeuroDev Therapy. All rights reserved.
+            © {new Date().getFullYear()} NeuroLearn. All rights reserved.
           </p>
         </div>
       </footer>

@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
                       Reset Your Password
                     </h2>
                     <p className="text-sm lg:text-base text-white/90 mb-6 lg:mb-8">
-                      Choose a strong new password to secure your NeuroDev Therapy account.
+                      Choose a strong new password to secure your NeuroLearn account.
                     </p>
                     <div className="relative h-48 lg:h-64 w-full">
                       <Image
@@ -293,7 +293,7 @@ export default function ResetPasswordPage() {
           <div className="flex flex-col gap-2 md:gap-4 lg:flex-1">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Brain className="h-6 w-6" />
-              <span>NeuroDev Therapy</span>
+              <span>NeuroLearn</span>
             </Link>
             <p className="text-sm text-gray-500 md:text-base">
               Providing specialized therapy for individuals with autism and dyslexia.
@@ -344,7 +344,7 @@ export default function ResetPasswordPage() {
         <div className="border-t py-6">
           <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-center text-sm text-gray-500 md:text-left">
-              © {new Date().getFullYear()} NeuroDev Therapy. All rights reserved.
+              © {new Date().getFullYear()} NeuroLearn. All rights reserved.
             </p>
           </div>
         </div>
