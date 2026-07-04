@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Rocket, Star, HelpCircle, Target } from "lucide-react";
+import { Navbar } from "@/components/ui/navbar";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export default function AboutPage() {
   const sections = [
@@ -43,6 +45,8 @@ export default function AboutPage() {
   ];
 
   return (
+    <>
+      <Navbar />
     <main className="relative min-h-screen py-20 px-6 sm:px-12 bg-gradient-to-b from-green-100 via-green-50 to-green-25 text-gray-800 overflow-x-hidden">
       {/* Subtle Green Overlay */}
       <div className="absolute inset-0 bg-green-200/10 pointer-events-none -z-10" />
@@ -133,18 +137,14 @@ export default function AboutPage() {
             Return to Home
           </span>
         </Link>
-        <Link href="/detection">
-          <span className="inline-block bg-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-600 transition-all shadow-lg">
-            Take Detection Test
+        <Link href="/learn">
+          <span className="inline-block bg-violet-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-violet-700 transition-all shadow-lg">
+            Try NeuroLearn
           </span>
         </Link>
       </motion.div>
-
-      {/* Footer */}
-      <footer className="mt-16 pt-8 text-center text-sm text-gray-500">
-        Building Brighter Minds Together
-        <br />© 2025 NeuroDev Therapy. All rights reserved.
-      </footer>
     </main>
+    <SiteFooter />
+    </>
   );
 }

@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAccessibility, type ColourBlindMode } from "@/context/AccessibilityContext";
 import { useStudentData } from "@/context/StudentDataContext";
 import { loadBand } from "@/lib/sensoryLoad";
+import { getPalette } from "@/lib/colourBlindPalettes";
 import { Navbar } from "@/components/ui/navbar";
 import SensorySlider from "@/components/learn/SensorySlider";
 import { ContentRenderer } from "@/components/learn/ContentRenderer";
@@ -50,6 +51,7 @@ function LearnInner() {
     useStudentData();
 
   const band = loadBand(sensoryLoad);
+  const cbPalette = !sandMode ? getPalette(colourBlindMode) : null;
 
   // Mode: explore or homework
   const [mode, setMode] = useState<Mode>("explore");
@@ -278,8 +280,13 @@ function LearnInner() {
 
       <main
         className={`min-h-screen pt-24 pb-16 px-4 md:px-8 transition-colors duration-500 ${
-          sandMode ? "bg-[#F5EFE0]" : "bg-[#0a0614]"
+          sandMode ? "bg-[#F5EFE0]" : cbPalette ? "" : "bg-[#0a0614]"
         }`}
+        style={
+          cbPalette && !sandMode
+            ? { backgroundColor: cbPalette.bg, color: cbPalette.text }
+            : undefined
+        }
       >
         <div className="max-w-3xl mx-auto space-y-8">
           {/* Header row */}

@@ -28,7 +28,7 @@ const defaultState: AccessibilityState = {
   deafMode: false,
   colourBlindMode: "none",
   sandMode: false,
-  sensoryLoad: 3,
+  sensoryLoad: 5,
 };
 
 const AccessibilityContext = createContext<AccessibilityContextValue>({

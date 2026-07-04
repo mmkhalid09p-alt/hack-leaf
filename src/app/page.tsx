@@ -1,68 +1,94 @@
 import Link from "next/link";
-import { ArrowRight, Brain, BookOpen, TestTube, Sparkles, BarChart3 } from "lucide-react";
+import {
+  ArrowRight,
+  Brain,
+  BookOpen,
+  TestTube,
+  Sparkles,
+  SlidersHorizontal,
+  VolumeX,
+  BarChart3,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Navbar } from "@/components/ui/navbar";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-slate-50 via-white to-violet-50/40">
       <Navbar />
 
-      <main className="flex-1 pt-16">
-        {/* Hero */}
-        <section className="w-full py-20 md:py-32 px-4 md:px-6 bg-gradient-to-b from-accent/40 via-background to-background">
-          <div className="container mx-auto max-w-4xl flex flex-col items-center text-center gap-8">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-accent px-4 py-1.5 text-sm font-medium text-primary">
-              <Brain className="h-4 w-4" />
-              Helps all students learn, however your brain works
-            </span>
-
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-foreground">
-              Learning that adapts{" "}
-              <span className="text-primary">to you</span>
-            </h1>
-
-            <p className="max-w-2xl text-lg text-muted-foreground">
-              AI-powered lessons that adjust to your sensory load in real time — plus
-              specialised support for Autism, ADHD, Dyslexia, and Deaf/HoH learners.
-              Works for every student, out of the box.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/subjects">
-                <Button size="lg" className="gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  Browse Subjects
-                </Button>
-              </Link>
-              <Link href="/learn">
-                <Button size="lg" variant="outline" className="gap-2">
-                  Start Learning
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+      <main className="flex-1 pt-8">
+        {/* NeuroLearn hero */}
+        <section className="relative overflow-hidden border-b border-violet-100 bg-gradient-to-br from-[#0a0614] via-[#130d2a] to-[#1a0f35] text-white">
+          <div className="container px-4 md:px-6 py-16 md:py-24">
+            <div className="mx-auto max-w-3xl text-center space-y-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-950/50 px-4 py-1.5 text-sm font-medium text-violet-200">
+                <Sparkles className="h-4 w-4" />
+                New — NeuroLearn adaptive learning
+              </span>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+                Your brain changes every day.{" "}
+                <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                  Your app should too.
+                </span>
+              </h1>
+              <p className="text-lg text-slate-300 leading-relaxed">
+                Set your sensory load (1–10) and watch the entire experience morph —
+                content depth, colours, speech, and calm mode — powered by Gemini.
+                Works for every student, however their brain works.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+                <Link href="/subjects">
+                  <Button size="lg" className="w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Browse Subjects
+                  </Button>
+                </Link>
+                <Link href="/learn">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-violet-400/50 text-violet-100 hover:bg-white/10 gap-2">
+                    Start Learning
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex flex-wrap justify-center gap-6 pt-6 text-xs text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Sensory load meter
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <VolumeX className="h-3.5 w-3.5" /> Deaf / HoH mode
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Brain className="h-3.5 w-3.5" /> Sand calm mode
+                </span>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Primary feature cards */}
-        <section className="w-full py-16 px-4 md:px-6">
-          <div className="container mx-auto max-w-5xl">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Primary learning entry points */}
+        <section className="container px-4 md:px-6 py-16">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center mb-10 space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight">Start learning today</h2>
+              <p className="text-muted-foreground">No account needed — progress saves locally, syncs when you sign in.</p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-3">
               <Link href="/subjects" className="group">
-                <Card className="h-full hover:border-primary/40 transition-colors">
+                <Card className="h-full hover:border-violet-300 transition-colors">
                   <CardHeader>
-                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center mb-2">
-                      <BookOpen className="h-5 w-5 text-primary" />
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-2">
+                      <BookOpen className="h-5 w-5 text-violet-600" />
                     </div>
                     <CardTitle>Subject Library</CardTitle>
                     <CardDescription>
-                      Browse Gemini-suggested topics across any subject — never a static catalog.
+                      Gemini-suggested topics across any subject — never a static catalog.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <span className="text-sm text-primary font-medium group-hover:underline underline-offset-4">
+                    <span className="text-sm text-violet-600 font-medium group-hover:underline underline-offset-4">
                       Explore subjects →
                     </span>
                   </CardContent>
@@ -70,19 +96,18 @@ export default function Home() {
               </Link>
 
               <Link href="/learn" className="group">
-                <Card className="h-full hover:border-primary/40 transition-colors">
+                <Card className="h-full hover:border-violet-300 transition-colors">
                   <CardHeader>
-                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center mb-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-2">
+                      <Sparkles className="h-5 w-5 text-violet-600" />
                     </div>
                     <CardTitle>Adaptive Learn</CardTitle>
                     <CardDescription>
-                      Drag the sensory-load slider and content re-generates to match — bullets,
-                      prose, or one idea at a time.
+                      Explore topics or get homework help — content adapts to your sensory load live.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <span className="text-sm text-primary font-medium group-hover:underline underline-offset-4">
+                    <span className="text-sm text-violet-600 font-medium group-hover:underline underline-offset-4">
                       Open Learn →
                     </span>
                   </CardContent>
@@ -90,19 +115,18 @@ export default function Home() {
               </Link>
 
               <Link href="/progress" className="group">
-                <Card className="h-full hover:border-primary/40 transition-colors">
+                <Card className="h-full hover:border-violet-300 transition-colors">
                   <CardHeader>
-                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center mb-2">
-                      <BarChart3 className="h-5 w-5 text-primary" />
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-2">
+                      <BarChart3 className="h-5 w-5 text-violet-600" />
                     </div>
                     <CardTitle>Progress & Streaks</CardTitle>
                     <CardDescription>
-                      Track topics explored, study streaks, and saved notes — no account needed
-                      to get started.
+                      Track topics explored, study streaks, and saved notes — all in one place.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <span className="text-sm text-primary font-medium group-hover:underline underline-offset-4">
+                    <span className="text-sm text-violet-600 font-medium group-hover:underline underline-offset-4">
                       View progress →
                     </span>
                   </CardContent>
@@ -112,156 +136,112 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Specialist support */}
-        <section className="w-full py-16 px-4 md:px-6 bg-muted/40">
-          <div className="container mx-auto max-w-5xl">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-bold tracking-tight">Specialist support included</h2>
-              <p className="mt-2 text-muted-foreground">
-                Screeners and gamified therapy modules, sitting alongside the new learning tools.
+        {/* Therapy CTAs */}
+        <section className="container px-4 md:px-6 py-16 md:py-20 border-t">
+          <div className="flex flex-col items-center text-center gap-12">
+            <div className="space-y-4 max-w-3xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-800">
+                <Brain className="h-4 w-4 text-green-600" />
+                Autism &amp; Dyslexia support
+              </span>
+              <h2 className="text-2xl font-bold tracking-tight text-green-900 sm:text-3xl md:text-4xl">
+                Gamified, module-based therapies for every learner
+              </h2>
+              <p className="text-lg text-gray-600">
+                Early detection screeners, therapy hubs, and an AI assistant — all in one open-source platform.
               </p>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-2">
-                    <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <CardTitle>Autism Therapy</CardTitle>
-                  <CardDescription>
-                    Gamified modules for autism therapy and development.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Link href="/autism">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      Explore Modules <ArrowRight className="h-3 w-3" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-2">
-                    <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <CardTitle>Dyslexia Therapy</CardTitle>
-                  <CardDescription>
-                    Interactive learning strategies for dyslexia.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Link href="/dyslexia">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      Explore Modules <ArrowRight className="h-3 w-3" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+                <Link href="/detection">
+                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                    Take Detection Test
+                    <TestTube className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/assistant">
+                  <Button size="lg" variant="outline" className="gap-2 border-green-600 text-green-700">
+                    AI Assistant
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
-            <div className="mt-6 text-center">
-              <Link href="/detection">
-                <Button variant="outline" className="gap-2">
-                  <TestTube className="h-4 w-4" />
-                  Take the Detection Test
-                </Button>
-              </Link>
+            <div className="grid gap-8 sm:grid-cols-2 w-full max-w-4xl">
+              <div className="flex flex-col items-center space-y-4 rounded-2xl border border-green-200 bg-white p-8 shadow-lg transition hover:shadow-xl">
+                <div className="rounded-full bg-purple-100 p-3">
+                  <Brain className="h-6 w-6 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-bold text-green-800">Autism Therapy</h3>
+                <p className="text-center text-gray-600">
+                  Communication, social, cognitive, and behavioral modules.
+                </p>
+                <Link href="/autism">
+                  <Button variant="outline" className="border-purple-300 text-purple-700">
+                    Explore Modules
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex flex-col items-center space-y-4 rounded-2xl border border-blue-200 bg-white p-8 shadow-lg transition hover:shadow-xl">
+                <div className="rounded-full bg-blue-100 p-3">
+                  <BookOpen className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-green-800">Dyslexia Therapy</h3>
+                <p className="text-center text-gray-600">
+                  Phonics, fluency, comprehension, and assistive strategies.
+                </p>
+                <Link href="/dyslexia">
+                  <Button variant="outline" className="border-blue-300 text-blue-700">
+                    Explore Modules
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Our approach */}
-        <section className="w-full py-16 px-4 md:px-6">
-          <div className="container mx-auto max-w-5xl">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-bold tracking-tight">Our approach</h2>
-              <p className="mt-2 text-muted-foreground">
-                Early detection + adaptive AI + gamified therapy, all in one place.
+        <section className="bg-gradient-to-b from-green-50/80 to-white py-16 md:py-20">
+          <div className="container px-4 md:px-6">
+            <div className="mx-auto max-w-5xl text-center mb-12">
+              <h2 className="text-3xl font-bold text-green-800">Our Approach</h2>
+              <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
+                Early detection plus engaging therapy — now with NeuroLearn for sensory-adaptive study sessions.
               </p>
             </div>
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-3">
               {[
                 {
-                  icon: <TestTube className="h-5 w-5" />,
+                  icon: TestTube,
                   title: "Early Detection",
-                  body: "Scientifically-backed screening tools help identify signs of Autism and Dyslexia early.",
-                  color: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+                  text: "Screening tools for autism and dyslexia signs — educational, not diagnostic.",
                 },
                 {
-                  icon: <Sparkles className="h-5 w-5" />,
+                  icon: Sparkles,
+                  title: "NeuroLearn",
+                  text: "AI content that adapts to your sensory load in real time.",
+                },
+                {
+                  icon: Brain,
                   title: "Gamified Therapy",
-                  body: "Level-based modules make therapy engaging, motivating, and effective for all ages.",
-                  color: "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400",
+                  text: "Level-based modules that make practice engaging and motivating.",
                 },
-                {
-                  icon: <BarChart3 className="h-5 w-5" />,
-                  title: "Progress Tracking",
-                  body: "Monitor development with streaks, session history, and personalised AI summaries.",
-                  color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-                },
-              ].map(({ icon, title, body, color }) => (
-                <Card key={title}>
-                  <CardHeader>
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-2 ${color}`}>
-                      {icon}
-                    </div>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>{body}</CardDescription>
-                  </CardHeader>
-                </Card>
+              ].map(({ icon: Icon, title, text }) => (
+                <div key={title} className="rounded-2xl border border-green-100 bg-white p-6 shadow-md">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-green-800">{title}</h3>
+                  <p className="mt-2 text-sm text-gray-600">{text}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t bg-muted/30">
-        <div className="container mx-auto flex flex-col gap-4 py-10 md:flex-row md:gap-8 md:py-12 px-4 md:px-6">
-          <div className="flex flex-col gap-2 lg:flex-1">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Brain className="h-5 w-5 text-primary" />
-              <span>NeuroDev Therapy</span>
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              Helping all students learn, however their brain works.
-            </p>
-          </div>
-          <div className="grid flex-1 grid-cols-2 gap-8 sm:grid-cols-3">
-            <div className="flex flex-col gap-2">
-              <h3 className="font-semibold text-sm">Learn</h3>
-              <nav className="flex flex-col gap-2">
-                <Link href="/subjects" className="text-sm text-muted-foreground hover:text-foreground">Subjects</Link>
-                <Link href="/learn" className="text-sm text-muted-foreground hover:text-foreground">Adaptive Learn</Link>
-                <Link href="/progress" className="text-sm text-muted-foreground hover:text-foreground">Progress</Link>
-              </nav>
-            </div>
-            <div className="flex flex-col gap-2">
-              <h3 className="font-semibold text-sm">Support</h3>
-              <nav className="flex flex-col gap-2">
-                <Link href="/autism" className="text-sm text-muted-foreground hover:text-foreground">Autism</Link>
-                <Link href="/dyslexia" className="text-sm text-muted-foreground hover:text-foreground">Dyslexia</Link>
-                <Link href="/detection" className="text-sm text-muted-foreground hover:text-foreground">Detection Test</Link>
-              </nav>
-            </div>
-            <div className="flex flex-col gap-2">
-              <h3 className="font-semibold text-sm">Company</h3>
-              <nav className="flex flex-col gap-2">
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">About Us</Link>
-                <Link href="/assistant" className="text-sm text-muted-foreground hover:text-foreground">AI Assistant</Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-        <div className="border-t py-6">
-          <div className="container mx-auto flex flex-col items-center justify-between gap-4 md:flex-row px-4 md:px-6">
-            <p className="text-center text-sm text-muted-foreground">
-              © {new Date().getFullYear()} NeuroDev Therapy. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

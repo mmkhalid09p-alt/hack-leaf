@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaPuzzlePiece, FaMemory, FaStream, FaShapes } from "react-icons/fa";
@@ -38,12 +39,14 @@ export default function CognitiveSkillCards() {
           <h3 className="text-lg font-semibold mb-2 text-green-800">{mod.title}</h3>
           <p className="text-sm text-gray-600 mb-4">{mod.description}</p>
 
-          <Button className="group bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold px-5 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2">
-            Start Activity
-            <span className="transform group-hover:translate-x-1 transition-transform duration-200">
-              →
-            </span>
-          </Button>
+          <Link href="/learn">
+            <Button className="group bg-gradient-to-r from-green-400 to-green-600 text-white font-semibold px-5 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2">
+              Start Activity
+              <span className="transform group-hover:translate-x-1 transition-transform duration-200">
+                →
+              </span>
+            </Button>
+          </Link>
         </Card>
       ))}
     </div>
