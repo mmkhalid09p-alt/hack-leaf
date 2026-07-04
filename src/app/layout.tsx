@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AccessibilityProvider } from "@/context/AccessibilityContext";
+import { StudentDataProvider } from "@/context/StudentDataContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NeuroDev Therapy",
-  description: "Neurodev Therapy is an open-source project designed to Detect Autism Spectrum Disorder (ASD) and Dyslexia Provide module-based therapies tailored to each condition Engage users with gamified, interactive learning experiences",
+  title: "NeuroLearn",
+  description: "NeuroLearn is a sensory-load-adaptive learning platform for neurodiverse learners — with adjustable sensory load, deaf mode, colour-blind palettes, sand mode, and AI-driven, personalised content.",
 };
 
 export default function RootLayout({
@@ -29,7 +30,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AccessibilityProvider>
-          {children}
+          <StudentDataProvider>
+            {children}
+          </StudentDataProvider>
         </AccessibilityProvider>
       </body>
     </html>

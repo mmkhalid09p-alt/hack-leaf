@@ -1,17 +1,18 @@
 <div align="center">
 
-# 🧠 NEURODEV THERAPY 🎮  
+# 🧠 NEUROLEARN 🎮  
 <p align="center">
-  <img src="/public/images/nav.png" alt="NeuroDev Therapy Banner" /> <br/>
+  <img src="/public/images/nav.png" alt="NeuroLearn Banner" /> <br/>
 </p>
-Helping detect & support **Autism** and **Dyslexia** through engaging module-based therapies
+A sensory-load-adaptive learning platform for neurodiverse learners
 
 ## 📌 Overview
 
-Neurodev Therapy is an open-source project designed to:
-- Detect **Autism Spectrum Disorder (ASD)** and **Dyslexia**
-- Provide **module-based therapies** tailored to each condition
-- Engage users with gamified, interactive learning experiences
+NeuroLearn is an open-source project designed to:
+- Adapt content and UI to each learner's **sensory load**
+- Provide accessibility modes: **deaf mode**, **colour-blind palettes**, and **sand mode**
+- Deliver **AI-driven, personalised** learning with detection screeners and module-based therapies
+- Support **Autism Spectrum Disorder (ASD)** and **Dyslexia**
 
 ---
 
@@ -88,6 +89,44 @@ Features cards for:
 - **supabase** for database
 - **gemini** for LLM model
 - **Vercel AI SDK** for AI Integrations
+
+---
+
+## 🚀 Backend Setup (Supabase)
+
+Login/signup won't work until a real Supabase project is connected — without
+this, the app falls back to a placeholder URL and every auth call fails.
+
+1. **Create a free project** at [supabase.com](https://supabase.com/dashboard) (takes ~2 minutes).
+2. **Copy your credentials**: Project → Settings → API → copy the *Project URL* and the *anon public* key.
+3. **Set up environment variables**: copy `env.example` to `.env.local` and paste in the two values:
+   ```bash
+   cp env.example .env.local
+   ```
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+   ```
+4. **Create the database schema**: open Project → SQL Editor → New query, paste the contents of
+   [`supabase/schema.sql`](supabase/schema.sql), and run it. This creates the `user_profiles` table
+   (used by signup/onboarding/dashboard) with row-level security so users can only read/write their own row.
+5. **Restart the dev server**: `npm run dev`.
+
+You should now be able to sign up, complete your profile, and land on `/dashboard`.
+
+### Optional: enabling "Continue with Google"
+
+The Google sign-in button on `/AuthPage` needs a one-time provider setup in the
+Supabase dashboard — this can't be done from code:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an OAuth 2.0 Client ID
+   (type: Web application). Add `https://<your-project-ref>.supabase.co/auth/v1/callback` as an authorized redirect URI.
+2. In Supabase: Authentication → Providers → Google → paste the Client ID and Client Secret → Save.
+3. In Supabase: Authentication → URL Configuration → add your app's origin (e.g. `http://localhost:3000`)
+   to the Redirect URLs allow list, since `src/app/AuthPage/page.tsx` redirects to `/auth/callback` after sign-in.
+
+Until this is configured, "Continue with Google" will show an error from Supabase — email/password sign-in
+works independently of this step.
 
 ---
 

@@ -19,6 +19,8 @@ export default function AuthPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const router = useRouter();
 
   // Password strength state
@@ -237,6 +239,35 @@ export default function AuthPage() {
     }
   };
 
+  // Handle forgot password — sends a recovery email instead of navigating
+  // straight to a form with no session behind it.
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const sanitizedEmail = sanitizeInput(email);
+      if (!isValidEmail(sanitizedEmail)) {
+        throw new Error("Please enter a valid email address");
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+    } catch (error) {
+      const err = error as Error;
+      setError(err.message || "Failed to send reset email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -259,7 +290,7 @@ export default function AuthPage() {
                       className="flex items-center justify-center mb-6"
                     >
                       <Brain className="w-16 h-16 mr-4 text-white drop-shadow-lg" />
-                      <h1 className="text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">NeuroDev</h1>
+                      <h1 className="text-4xl xl:text-5xl font-bold text-white drop-shadow-lg">NeuroLearn</h1>
                     </motion.div>
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
@@ -290,25 +321,29 @@ export default function AuthPage() {
                   >
                     <div className="flex items-center justify-center mb-4 lg:hidden">
                       <Brain className="w-12 h-12 text-green-600 mr-3" />
-                      <h1 className="text-3xl font-bold text-gray-900">NeuroDev</h1>
+                      <h1 className="text-3xl font-bold text-gray-900">NeuroLearn</h1>
                     </div>
                     <motion.h2
-                      key={isLogin ? "login" : "signup"}
+                      key={showForgotPassword ? "forgot" : isLogin ? "login" : "signup"}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                       className="text-2xl xl:text-3xl font-bold text-gray-900 mb-2"
                     >
-                      {isLogin ? "Welcome back" : "Get started"}
+                      {showForgotPassword ? "Reset your password" : isLogin ? "Welcome back" : "Get started"}
                     </motion.h2>
                     <motion.p
-                      key={isLogin ? "login-desc" : "signup-desc"}
+                      key={showForgotPassword ? "forgot-desc" : isLogin ? "login-desc" : "signup-desc"}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.1 }}
                       className="text-gray-600"
                     >
-                      {isLogin ? "Sign in to your account" : "Create your account"}
+                      {showForgotPassword
+                        ? "We'll email you a link to reset it"
+                        : isLogin
+                        ? "Sign in to your account"
+                        : "Create your account"}
                     </motion.p>
                   </motion.div>
 
@@ -332,6 +367,81 @@ export default function AuthPage() {
                     </motion.div>
                   )}
 
+                  {showForgotPassword ? (
+                    resetEmailSent ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-6 text-center"
+                      >
+                        <p className="text-gray-600 text-sm">
+                          If an account exists for <strong>{email}</strong>, a password
+                          reset link is on its way. Check your inbox.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowForgotPassword(false);
+                            setResetEmailSent(false);
+                            setError("");
+                            setSuccess("");
+                          }}
+                          className="text-green-600 hover:text-green-700 font-medium transition-colors duration-200"
+                        >
+                          Back to sign in
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <form onSubmit={handleForgotPassword} className="space-y-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                          </label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                              placeholder="your@email.com"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {loading ? (
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <>
+                              Send reset link
+                              <ArrowRight className="w-5 h-5" />
+                            </>
+                          )}
+                        </button>
+
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowForgotPassword(false);
+                              setError("");
+                              setSuccess("");
+                            }}
+                            className="text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                          >
+                            Back to sign in
+                          </button>
+                        </div>
+                      </form>
+                    )
+                  ) : (
+                  <>
                   <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-6">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -576,7 +686,11 @@ export default function AuthPage() {
                         className="mt-4 text-center pt-4"
                       >
                         <button
-                          onClick={() => router.push("/auth/reset-password")}
+                          onClick={() => {
+                            setShowForgotPassword(true);
+                            setError("");
+                            setSuccess("");
+                          }}
                           className="text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200"
                         >
                           Forgot your password?
@@ -584,6 +698,8 @@ export default function AuthPage() {
                       </motion.div>
                     )}
                   </motion.div>
+                  </>
+                  )}
                 </div>
               </div>
             </div>

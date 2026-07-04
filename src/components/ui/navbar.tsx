@@ -32,7 +32,7 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Brain className="h-6 w-6" />
-          <span>NeuroDev Therapy</span>
+          <span>NeuroLearn</span>
         </Link>
         <nav className="hidden md:flex gap-6">
           <Link href="/autism" className="text-sm font-medium hover:underline underline-offset-4">
@@ -50,8 +50,14 @@ export function Navbar() {
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4">
             About Us
           </Link>
+          <Link href="/subjects" className="text-sm font-medium hover:underline underline-offset-4">
+            Subjects
+          </Link>
           <Link href="/learn" className="text-sm font-medium hover:underline underline-offset-4">
             Learn
+          </Link>
+          <Link href="/progress" className="text-sm font-medium hover:underline underline-offset-4">
+            Progress
           </Link>
           <Link href="/profile" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1">
             <Settings className="h-3.5 w-3.5" />
@@ -122,8 +128,14 @@ export function Navbar() {
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
             About Us
           </Link>
+          <Link href="/subjects" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
+            Subjects
+          </Link>
           <Link href="/learn" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
             Learn
+          </Link>
+          <Link href="/progress" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
+            Progress
           </Link>
           <Link href="/profile" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" onClick={() => setMobileMenuOpen(false)}>
             <Settings className="h-3.5 w-3.5" />

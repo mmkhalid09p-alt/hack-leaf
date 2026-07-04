@@ -19,8 +19,23 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordScore, setPasswordScore] = useState(0);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
 
   const router = useRouter();
+
+  // A valid recovery session only exists here if the user arrived via a
+  // freshly-exchanged /auth/callback redirect from the reset email. Without
+  // this check, an expired/reused/direct-navigated link would render a form
+  // that fails opaquely on submit.
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setHasSession(!!user);
+      setCheckingSession(false);
+    };
+    checkSession();
+  }, []);
 
   // Password strength calculation
   useEffect(() => {
@@ -105,7 +120,7 @@ export default function ResetPasswordPage() {
                       Reset Your Password
                     </h2>
                     <p className="text-sm lg:text-base text-white/90 mb-6 lg:mb-8">
-                      Choose a strong new password to secure your NeuroDev Therapy account.
+                      Choose a strong new password to secure your NeuroLearn account.
                     </p>
                     <div className="relative h-48 lg:h-64 w-full">
                       <Image
@@ -121,6 +136,33 @@ export default function ResetPasswordPage() {
 
                 {/* Right Side - Form */}
                 <div className="w-full lg:w-1/2 p-6 lg:p-8">
+                  {checkingSession ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-4">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+                      <p className="text-sm text-gray-500">Checking your link...</p>
+                    </div>
+                  ) : !hasSession ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center space-y-4 py-8"
+                    >
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        Link invalid or expired
+                      </h2>
+                      <p className="text-sm text-gray-600">
+                        This password reset link is no longer valid. Request a new one
+                        from the sign-in page.
+                      </p>
+                      <Link
+                        href="/AuthPage"
+                        className="inline-block text-green-600 hover:text-green-700 font-medium"
+                      >
+                        Back to sign in
+                      </Link>
+                    </motion.div>
+                  ) : (
+                    <>
                   <motion.div
                     className="text-center mb-6 lg:mb-8"
                     initial={{ y: -20 }}
@@ -238,6 +280,8 @@ export default function ResetPasswordPage() {
                       </Link>
                     </p>
                   </form>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -249,7 +293,7 @@ export default function ResetPasswordPage() {
           <div className="flex flex-col gap-2 md:gap-4 lg:flex-1">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Brain className="h-6 w-6" />
-              <span>NeuroDev Therapy</span>
+              <span>NeuroLearn</span>
             </Link>
             <p className="text-sm text-gray-500 md:text-base">
               Providing specialized therapy for individuals with autism and dyslexia.
@@ -300,7 +344,7 @@ export default function ResetPasswordPage() {
         <div className="border-t py-6">
           <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-center text-sm text-gray-500 md:text-left">
-              © {new Date().getFullYear()} NeuroDev Therapy. All rights reserved.
+              © {new Date().getFullYear()} NeuroLearn. All rights reserved.
             </p>
           </div>
         </div>

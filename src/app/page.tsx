@@ -7,8 +7,10 @@ import {
   Sparkles,
   SlidersHorizontal,
   VolumeX,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Navbar } from "@/components/ui/navbar";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
@@ -35,25 +37,19 @@ export default function Home() {
               <p className="text-lg text-slate-300 leading-relaxed">
                 Set your sensory load (1–10) and watch the entire experience morph —
                 content depth, colours, speech, and calm mode — powered by Gemini.
+                Works for every student, however their brain works.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-                <Link href="/learn">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white gap-2"
-                  >
-                    Try NeuroLearn
-                    <ArrowRight className="h-4 w-4" />
+                <Link href="/subjects">
+                  <Button size="lg" className="w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Browse Subjects
                   </Button>
                 </Link>
-                <Link href="/profile">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full sm:w-auto border-violet-400/50 text-violet-100 hover:bg-white/10 gap-2"
-                  >
-                    <SlidersHorizontal className="h-4 w-4" />
-                    Accessibility settings
+                <Link href="/learn">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-violet-400/50 text-violet-100 hover:bg-white/10 gap-2">
+                    Start Learning
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -72,8 +68,76 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Original therapy CTAs */}
-        <section className="container px-4 md:px-6 py-16 md:py-20">
+        {/* Primary learning entry points */}
+        <section className="container px-4 md:px-6 py-16">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center mb-10 space-y-2">
+              <h2 className="text-2xl font-bold tracking-tight">Start learning today</h2>
+              <p className="text-muted-foreground">No account needed — progress saves locally, syncs when you sign in.</p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-3">
+              <Link href="/subjects" className="group">
+                <Card className="h-full hover:border-violet-300 transition-colors">
+                  <CardHeader>
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-2">
+                      <BookOpen className="h-5 w-5 text-violet-600" />
+                    </div>
+                    <CardTitle>Subject Library</CardTitle>
+                    <CardDescription>
+                      Gemini-suggested topics across any subject — never a static catalog.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-sm text-violet-600 font-medium group-hover:underline underline-offset-4">
+                      Explore subjects →
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/learn" className="group">
+                <Card className="h-full hover:border-violet-300 transition-colors">
+                  <CardHeader>
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-2">
+                      <Sparkles className="h-5 w-5 text-violet-600" />
+                    </div>
+                    <CardTitle>Adaptive Learn</CardTitle>
+                    <CardDescription>
+                      Explore topics or get homework help — content adapts to your sensory load live.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-sm text-violet-600 font-medium group-hover:underline underline-offset-4">
+                      Open Learn →
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/progress" className="group">
+                <Card className="h-full hover:border-violet-300 transition-colors">
+                  <CardHeader>
+                    <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-2">
+                      <BarChart3 className="h-5 w-5 text-violet-600" />
+                    </div>
+                    <CardTitle>Progress & Streaks</CardTitle>
+                    <CardDescription>
+                      Track topics explored, study streaks, and saved notes — all in one place.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-sm text-violet-600 font-medium group-hover:underline underline-offset-4">
+                      View progress →
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Therapy CTAs */}
+        <section className="container px-4 md:px-6 py-16 md:py-20 border-t">
           <div className="flex flex-col items-center text-center gap-12">
             <div className="space-y-4 max-w-3xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-green-300 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-800">
@@ -84,15 +148,11 @@ export default function Home() {
                 Gamified, module-based therapies for every learner
               </h2>
               <p className="text-lg text-gray-600">
-                Early detection screeners, therapy hubs, and an AI assistant — all in
-                one open-source platform.
+                Early detection screeners, therapy hubs, and an AI assistant — all in one open-source platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
                 <Link href="/detection">
-                  <Button
-                    size="lg"
-                    className="bg-green-600 hover:bg-green-700 text-white gap-2"
-                  >
+                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white gap-2">
                     Take Detection Test
                     <TestTube className="h-4 w-4" />
                   </Button>
@@ -141,13 +201,13 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Our approach */}
         <section className="bg-gradient-to-b from-green-50/80 to-white py-16 md:py-20">
           <div className="container px-4 md:px-6">
             <div className="mx-auto max-w-5xl text-center mb-12">
               <h2 className="text-3xl font-bold text-green-800">Our Approach</h2>
               <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
-                Early detection plus engaging therapy — now with NeuroLearn for
-                sensory-adaptive study sessions.
+                Early detection plus engaging therapy — now with NeuroLearn for sensory-adaptive study sessions.
               </p>
             </div>
             <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-3">
@@ -168,10 +228,7 @@ export default function Home() {
                   text: "Level-based modules that make practice engaging and motivating.",
                 },
               ].map(({ icon: Icon, title, text }) => (
-                <div
-                  key={title}
-                  className="rounded-2xl border border-green-100 bg-white p-6 shadow-md"
-                >
+                <div key={title} className="rounded-2xl border border-green-100 bg-white p-6 shadow-md">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
                     <Icon className="h-6 w-6" />
                   </div>

@@ -66,7 +66,7 @@ export default function BehavioralTrainingModule() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/autism" className="flex items-center gap-2 font-semibold">
             <Brain className="h-6 w-6" />
-            <span>NeuroDev Therapy</span>
+            <span>NeuroLearn</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/autism">
@@ -198,7 +198,7 @@ export default function BehavioralTrainingModule() {
         <div className="container py-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-center text-sm text-gray-500 md:text-left">
-              © {new Date().getFullYear()} NeuroDev Therapy. All rights reserved.
+              © {new Date().getFullYear()} NeuroLearn. All rights reserved.
             </p>
             <div className="flex gap-4">
               <Link href="/autism" className="text-sm text-gray-500 hover:underline">
