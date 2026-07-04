@@ -44,6 +44,9 @@ export function Navbar() {
           <Link href="/detection" className="text-sm font-medium hover:underline underline-offset-4">
             Detection Test
           </Link>
+          <Link href="/assistant" className="text-sm font-medium hover:underline underline-offset-4">
+            Assistant
+          </Link>
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4">
             About Us
           </Link>
@@ -112,6 +115,9 @@ export function Navbar() {
           </Link>
           <Link href="/detection" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
             Detection Test
+          </Link>
+          <Link href="/assistant" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
+            Assistant
           </Link>
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
             About Us
