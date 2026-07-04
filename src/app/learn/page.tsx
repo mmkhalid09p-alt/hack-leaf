@@ -1,15 +1,19 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccessibility } from "@/context/AccessibilityContext";
 import { BreathingCircle } from "@/components/ui/BreathingCircle";
 import { VisualCueFlash, VisualCueFlashHandle } from "@/components/ui/VisualCueFlash";
 import { Navbar } from "@/components/ui/navbar";
-import { VolumeX, Settings, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { VolumeX, Settings, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { CalmScreen } from "@/components/ui/CalmScreen";
 import { TTSHighlightRenderer } from "@/components/ui/TTSHighlightRenderer";
+
+const SAMPLE_TEXT =
+  "Neurodiversity is the idea that neurological differences like Autism, ADHD, and Dyslexia are natural variations of the human genome. Learning apps should adapt to the user's current mental bandwidth, offering streamlined bullet points or spoken text options depending on immediate sensory fatigue.";
 
 // Sensory load → label & emoji
 const LOAD_META: Record<number, { label: string; emoji: string; colour: string }> = {
@@ -26,11 +30,83 @@ const LOAD_META: Record<number, { label: string; emoji: string; colour: string }
 };
 
 export default function LearnPage() {
-  const { deafMode, sensoryLoad, setSensoryLoad } = useAccessibility();
+  const { deafMode, sandMode, sensoryLoad, setSensoryLoad } = useAccessibility();
   const flashRef = useRef<VisualCueFlashHandle>(null);
   const [captionText, setCaptionText] = useState<string | null>(null);
 
   const meta = LOAD_META[sensoryLoad] ?? LOAD_META[3];
+
+  // ── Topic input + Gemini-adaptive content generation ──
+  const [topicInput, setTopicInput] = useState("");
+  const [hyperfocusInterest, setHyperfocusInterest] = useState("");
+  const [topic, setTopic] = useState<string | null>(null);
+  const [content, setContent] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
+
+  const generateContent = useCallback(
+    async (topicValue: string, loadLevel: number) => {
+      setIsGenerating(true);
+      setGenError(null);
+      setContent("");
+
+      try {
+        const res = await fetch("/api/learn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic: topicValue,
+            loadLevel,
+            hyperfocusInterest: hyperfocusInterest.trim() || undefined,
+            sandMode,
+          }),
+        });
+
+        if (!res.ok || !res.body) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error || "Failed to generate content.");
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          accumulated += decoder.decode(value, { stream: true });
+          setContent(accumulated);
+        }
+      } catch (err) {
+        setGenError(
+          err instanceof Error ? err.message : "Something went wrong."
+        );
+      } finally {
+        setIsGenerating(false);
+      }
+    },
+    [hyperfocusInterest, sandMode]
+  );
+
+  const handleTopicSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const value = topicInput.trim();
+    if (!value || isGenerating) return;
+    setTopic(value);
+    void generateContent(value, sensoryLoad);
+  };
+
+  // Regenerate when sensory load or sand mode shifts mid-session, debounced —
+  // "every slider move = new Gemini call" (per PRODUCT_PLAN.md), but only once a
+  // topic has actually been submitted.
+  useEffect(() => {
+    if (!topic) return;
+    const timeout = setTimeout(() => {
+      void generateContent(topic, sensoryLoad);
+    }, 400);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sensoryLoad, sandMode]);
 
   // Simulate an audio cue (e.g. a notification arriving)
   const simulateCue = useCallback(() => {
@@ -162,22 +238,87 @@ export default function LearnPage() {
             <BreathingCircle deafMode={deafMode} size={220} />
           </section>
 
+          {/* ── Topic Input ── */}
+          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl space-y-4">
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
+              What do you want to learn?
+            </h2>
+            <form onSubmit={handleTopicSubmit} className="space-y-3">
+              <input
+                type="text"
+                value={topicInput}
+                onChange={(e) => setTopicInput(e.target.value)}
+                placeholder="e.g. Photosynthesis, fractions, the water cycle..."
+                className="w-full rounded-xl border border-white/10 bg-[#0a0614] px-4 py-3 text-sm text-slate-200 outline-none focus:border-violet-500"
+                disabled={isGenerating}
+              />
+              <input
+                type="text"
+                value={hyperfocusInterest}
+                onChange={(e) => setHyperfocusInterest(e.target.value)}
+                placeholder="Optional: a hyperfocus interest (football, Minecraft, cooking...)"
+                className="w-full rounded-xl border border-white/10 bg-[#0a0614] px-4 py-3 text-sm text-slate-200 outline-none focus:border-violet-500"
+                disabled={isGenerating}
+              />
+              <Button
+                type="submit"
+                disabled={isGenerating || !topicInput.trim()}
+                className="w-full bg-violet-700 hover:bg-violet-600 text-white"
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                {topic ? "Regenerate" : "Start Learning"}
+              </Button>
+            </form>
+          </section>
+
           {/* ── Learning Passage with TTS & Word Highlighting ── */}
           <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl space-y-4">
             <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
               Interactive Learning Content
             </h2>
-            <p className="text-xs text-slate-500">
-              {sensoryLoad >= 7 && sensoryLoad <= 9 && !deafMode
-                ? "⚡ High load detected: Auto-triggering Text-to-Speech..."
-                : "Speech highlighting is available below. Tap Play to start."}
-            </p>
-            
-            <TTSHighlightRenderer
-              text="Neurodiversity is the idea that neurological differences like Autism, ADHD, and Dyslexia are natural variations of the human genome. Learning apps should adapt to the user's current mental bandwidth, offering streamlined bullet points or spoken text options depending on immediate sensory fatigue."
-              deafMode={deafMode}
-              autoPlay={sensoryLoad >= 7 && sensoryLoad <= 9}
-            />
+
+            {genError && (
+              <p className="text-xs text-red-400">
+                {genError.includes("GOOGLE_GENERATIVE_AI_API_KEY")
+                  ? "Add your AI Studio key to .env.local, then restart the dev server."
+                  : genError}
+              </p>
+            )}
+
+            {!genError && (
+              <p className="text-xs text-slate-500">
+                {!topic
+                  ? "Enter a topic above to generate content that adapts to your sensory load."
+                  : sensoryLoad >= 7 && sensoryLoad <= 9 && !deafMode
+                  ? "⚡ High load detected: Auto-triggering Text-to-Speech..."
+                  : "Speech highlighting is available below. Tap Play to start."}
+              </p>
+            )}
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={topic ? `${topic}-${meta.label}` : "sample"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <TTSHighlightRenderer
+                  text={content || (topic ? "" : SAMPLE_TEXT)}
+                  deafMode={deafMode}
+                  autoPlay={
+                    !!topic &&
+                    !isGenerating &&
+                    sensoryLoad >= 7 &&
+                    sensoryLoad <= 9
+                  }
+                />
+              </motion.div>
+            </AnimatePresence>
           </section>
 
           {/* ── Notification cue simulator ── */}
