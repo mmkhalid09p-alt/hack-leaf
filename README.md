@@ -4,16 +4,7 @@
 <p align="center">
   <img src="/public/images/nav.png" alt="NeuroDev Therapy Banner" /> <br/>
 </p>
-Helping detect & support **Autism** and **Dyslexia** through engaging module-based therapies.
-
-## Connect with me
-
-[![Join the discord server for contributions](https://img.shields.io/badge/Discord-%237289DA.svg?logo=discord&logoColor=white)](https://discord.gg/gwyUM2yh)  [![Connect with me on LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/dhruba-bhattacharyya-336928292/)
-
-<img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=26&duration=3000&color=00C4FF&center=true&vCenter=true&width=800&lines=Welcome+to+Neurodev+Therapy;Autism+%26+Dyslexia+Support+Platform;Modular+Therapies+for+Every+Learner!" alt="Typing SVG" />
-</div>
-
----
+Helping detect & support **Autism** and **Dyslexia** through engaging module-based therapies
 
 ## 📌 Overview
 
@@ -107,24 +98,6 @@ Feel free to suggest UI components, design animations, or fix bugs!
 
 > See the [CONTRIBUTING.md](CONTRIBUTING.md) for setup and details.
 
----
-
-## 🧑‍💻 Maintainers
-
-<table>
-  <tr>
-    <td align="center"><img src="https://avatars.githubusercontent.com/u/144554934?v=4" width="80"/><br><b>Dhruba <br>Bhattacharyya</b><br><sub>Project Admin</sub><br><a href="https://www.linkedin.com/in/dhruba-bhattacharyya-336928292/"><img src="https://img.icons8.com/fluency/32/000000/linkedin.png"/></a></td>
-  </tr>
-</table>
-
----
-
-## 💬 Join the Discussion
-💡 Join our [Discord Server](https://discord.gg/gwyUM2yh) to:
-- Share ideas 💡
-- Suggest features 🧩
-- Contribute code 💻
-- Connect with neurodiversity advocates 🤝
 
 ---
 
