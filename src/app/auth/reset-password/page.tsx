@@ -78,8 +78,9 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push("/AuthPage");
       }, 3000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const errorObj = err as Error;
+      setError(errorObj.message);
     } finally {
       setLoading(false);
     }

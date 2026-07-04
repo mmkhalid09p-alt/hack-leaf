@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Brain, User } from "lucide-react";
+import { Brain, User, Settings } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { supabase } from "@/lib/supabaseClient";
 
@@ -46,6 +46,13 @@ export function Navbar() {
           </Link>
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4">
             About Us
+          </Link>
+          <Link href="/learn" className="text-sm font-medium hover:underline underline-offset-4">
+            Learn
+          </Link>
+          <Link href="/profile" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1">
+            <Settings className="h-3.5 w-3.5" />
+            Settings
           </Link>
         </nav>
         
@@ -108,6 +115,13 @@ export function Navbar() {
           </Link>
           <Link href="/about" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
             About Us
+          </Link>
+          <Link href="/learn" className="text-sm font-medium hover:underline underline-offset-4" onClick={() => setMobileMenuOpen(false)}>
+            Learn
+          </Link>
+          <Link href="/profile" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" onClick={() => setMobileMenuOpen(false)}>
+            <Settings className="h-3.5 w-3.5" />
+            Settings
           </Link>
           {!isAuthPage && (
             isSignedIn ? (
