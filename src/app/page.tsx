@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Navbar } from "@/components/ui/navbar";
 import { ArrowRight, Brain, BookOpen, TestTube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

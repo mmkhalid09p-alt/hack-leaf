@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Brain } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Brain } from "lucide-react";
 import { Navbar } from "@/components/ui/navbar";
-import Link from "next/link";
 import Image from "next/image";
 
 export default function AuthPage() {
@@ -102,6 +101,7 @@ export default function AuthPage() {
       setPasswordStrength({
         score: 0,
         feedback: "",
+        strengthColor: "",
         checks: {
           length: false,
           lowercase: false,
@@ -141,11 +141,12 @@ export default function AuthPage() {
       if (data.user) {
         router.replace("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       // SECURITY IMPROVEMENT: Sanitize error messages
-      const sanitizedError = error.message?.includes('Invalid login credentials')
+      const sanitizedError = err.message?.includes('Invalid login credentials')
         ? "Invalid email or password. Please try again."
-        : error.message || "Login failed";
+        : err.message || "Login failed";
       setError(sanitizedError);
     } finally {
       setLoading(false);
@@ -203,11 +204,12 @@ export default function AuthPage() {
         setError("Failed to create account. Please try again.");
       }
 
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       // SECURITY IMPROVEMENT: Sanitize error messages
-      const sanitizedError = error.message?.includes('already registered')
+      const sanitizedError = err.message?.includes('already registered')
         ? "An account with this email already exists. Please sign in instead."
-        : error.message || "Signup failed";
+        : err.message || "Signup failed";
       setError(sanitizedError);
     } finally {
       setLoading(false);
@@ -220,7 +222,7 @@ export default function AuthPage() {
     setError("");
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`
@@ -228,8 +230,9 @@ export default function AuthPage() {
       });
 
       if (error) throw error;
-    } catch (error: any) {
-      setError(error.message || "Google sign-in failed");
+    } catch (error) {
+      const err = error as Error;
+      setError(err.message || "Google sign-in failed");
       setGoogleLoading(false);
     }
   };
