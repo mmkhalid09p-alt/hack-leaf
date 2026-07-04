@@ -25,6 +25,10 @@ import {
   BookOpen,
   MessageCircle,
   Send,
+  Volume2,
+  Copy,
+  RefreshCw,
+  History,
 } from "lucide-react";
 import {
   useAccessibility,
@@ -186,8 +190,31 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [doneFlash, setDoneFlash] = useState(false);
+  const [recentTopics, setRecentTopics] = useState<string[]>([]);
 
   const abortRef = useRef<AbortController | null>(null);
+
+  // Recently revised topics — persisted so learners can jump back in
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("neurolearn_recent_topics");
+      if (raw) setRecentTopics(JSON.parse(raw));
+    } catch {
+      /* ignore malformed storage */
+    }
+  }, []);
+
+  function recordTopic(t: string) {
+    setRecentTopics((prev) => {
+      const next = [t, ...prev.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, 6);
+      try {
+        localStorage.setItem("neurolearn_recent_topics", JSON.stringify(next));
+      } catch {
+        /* ignore quota errors */
+      }
+      return next;
+    });
+  }
 
   const generate = useCallback(
     async (topic: string, loadLevel: number, sand: boolean) => {
@@ -253,6 +280,7 @@ export default function Home() {
     if (!value || isGenerating) return;
     setTopicInput(value);
     setActiveTopic(value);
+    recordTopic(value);
     generate(value, sensoryLoad, sandMode);
   }
 
@@ -398,27 +426,66 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* Suggestion chips — only when nothing active & brain is fresh-ish */}
+                {/* Recent + suggestion chips — only when nothing active & brain is fresh-ish */}
                 {!activeTopic && band !== "high" && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {SUGGESTIONS.map((s, i) => (
-                      <motion.button
-                        key={s}
-                        type="button"
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.04 * i, duration: 0.25 }}
-                        onClick={() => startTopic(s)}
-                        className="rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors hover:brightness-95"
-                        style={{
-                          borderColor: theme.border,
-                          backgroundColor: theme.bg,
-                          color: theme.muted,
-                        }}
-                      >
-                        {s}
-                      </motion.button>
-                    ))}
+                  <div className="mt-4 space-y-3">
+                    {recentTopics.length > 0 && (
+                      <div>
+                        <p
+                          className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide"
+                          style={{ color: theme.muted }}
+                        >
+                          <History className="h-3 w-3" aria-hidden /> Recently revised
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {recentTopics.map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => startTopic(s)}
+                              className="rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors hover:brightness-95"
+                              style={{
+                                borderColor: theme.accent,
+                                backgroundColor: theme.soft,
+                                color: theme.accent,
+                              }}
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      {recentTopics.length > 0 && (
+                        <p
+                          className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide"
+                          style={{ color: theme.muted }}
+                        >
+                          Or try one
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {SUGGESTIONS.map((s, i) => (
+                          <motion.button
+                            key={s}
+                            type="button"
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.04 * i, duration: 0.25 }}
+                            onClick={() => startTopic(s)}
+                            className="rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors hover:brightness-95"
+                            style={{
+                              borderColor: theme.border,
+                              backgroundColor: theme.bg,
+                              color: theme.muted,
+                            }}
+                          >
+                            {s}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </form>
@@ -490,6 +557,16 @@ export default function Home() {
                   band={band}
                   theme={theme}
                   isStreaming={isGenerating}
+                />
+              )}
+
+              {!error && content && !isGenerating && (
+                <ContentTools
+                  content={content}
+                  deafMode={deafMode}
+                  theme={theme}
+                  disabled={isGenerating}
+                  onRegenerate={() => generate(activeTopic, sensoryLoad, sandMode)}
                 />
               )}
             </motion.section>
@@ -747,6 +824,132 @@ function AdaptiveContent({
       <p className="text-center text-xs font-semibold" style={{ color: theme.muted }}>
         {safeIndex + 1} of {chunks.length}
       </p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Content tools — listen (TTS) / copy / regenerate
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ContentTools({
+  content,
+  deafMode,
+  theme,
+  disabled,
+  onRegenerate,
+}: {
+  content: string;
+  deafMode: boolean;
+  theme: Theme;
+  disabled: boolean;
+  onRegenerate: () => void;
+}) {
+  const [speaking, setSpeaking] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const plain = useMemo(
+    () => content.replace(/\*\*/g, "").replace(/^#+\s*/gm, ""),
+    [content],
+  );
+
+  // Stop any speech if the content changes or the tools unmount
+  useEffect(() => {
+    setSpeaking(false);
+    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+    return () => {
+      if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+    };
+  }, [content]);
+
+  function toggleSpeak() {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(plain);
+    utterance.rate = 0.95;
+    utterance.onend = () => setSpeaking(false);
+    utterance.onerror = () => setSpeaking(false);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+    setSpeaking(true);
+  }
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(plain);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
+
+  const btn =
+    "flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold transition hover:brightness-95 active:scale-[0.98] disabled:opacity-40";
+
+  return (
+    <div
+      className="mt-5 flex flex-wrap items-center gap-2 border-t pt-4"
+      style={{ borderColor: theme.border }}
+    >
+      {/* Listen — hidden in deaf mode (all audio disabled) */}
+      {!deafMode && (
+        <button
+          type="button"
+          onClick={toggleSpeak}
+          aria-pressed={speaking}
+          className={btn}
+          style={{
+            borderColor: speaking ? theme.accent : theme.border,
+            backgroundColor: speaking ? theme.soft : "transparent",
+            color: speaking ? theme.accent : theme.muted,
+          }}
+        >
+          {speaking ? (
+            <>
+              <Square className="h-4 w-4" aria-hidden /> Stop
+            </>
+          ) : (
+            <>
+              <Volume2 className="h-4 w-4" aria-hidden /> Listen
+            </>
+          )}
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={copy}
+        className={btn}
+        style={{
+          borderColor: copied ? theme.accent : theme.border,
+          color: copied ? theme.accent : theme.muted,
+        }}
+      >
+        {copied ? (
+          <>
+            <Check className="h-4 w-4" aria-hidden /> Copied
+          </>
+        ) : (
+          <>
+            <Copy className="h-4 w-4" aria-hidden /> Copy
+          </>
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={onRegenerate}
+        disabled={disabled}
+        className={btn}
+        style={{ borderColor: theme.border, color: theme.muted }}
+      >
+        <RefreshCw className="h-4 w-4" aria-hidden /> Regenerate
+      </button>
     </div>
   );
 }

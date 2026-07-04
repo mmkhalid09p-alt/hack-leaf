@@ -5,6 +5,16 @@ body {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
+/* Visible keyboard focus for buttons, links and inputs (SEN / a11y) */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[role="switch"]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
 /* Clean study-tool range slider */
 input[type="range"].meter {
   -webkit-appearance: none;
