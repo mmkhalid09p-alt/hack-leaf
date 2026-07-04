@@ -2,14 +2,14 @@
 @import "tw-animate-css";
 
 body {
-  font-family: var(--font-nunito), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
-/* Chunky Duolingo-style range slider */
+/* Clean study-tool range slider */
 input[type="range"].meter {
   -webkit-appearance: none;
   appearance: none;
-  height: 14px;
+  height: 8px;
   border-radius: 9999px;
   outline: none;
   cursor: pointer;
@@ -18,25 +18,29 @@ input[type="range"].meter {
 input[type="range"].meter::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 34px;
-  height: 34px;
+  width: 22px;
+  height: 22px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 4px solid var(--meter-accent, #58cc02);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+  border: 3px solid var(--meter-accent, #4255ff);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   transition: transform 0.15s ease;
 }
 
 input[type="range"].meter::-webkit-slider-thumb:hover {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 input[type="range"].meter::-moz-range-thumb {
-  width: 34px;
-  height: 34px;
+  width: 22px;
+  height: 22px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 4px solid var(--meter-accent, #58cc02);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+  border: 3px solid var(--meter-accent, #4255ff);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   transition: transform 0.15s ease;
+}
+
+input[type="range"].meter::-moz-range-thumb:hover {
+  transform: scale(1.08);
 }

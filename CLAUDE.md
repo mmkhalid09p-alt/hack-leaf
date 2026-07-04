@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 NeuroLearn — a single-screen, sensory-load-adaptive revision app for SEN / neurodiverse
 learners. Paste a topic, set how your brain feels (1–10), and Gemini rewrites the content
-to match. Duolingo-inspired UI with Framer Motion animations.
+to match. Clean, card-first revision UI (Quizlet / Anki-inspired) with subtle Framer Motion transitions.
 
 Core features (non-negotiable):
 - **Sensory meter** — permanent 1–10 slider; the entire UI and content morph with it
@@ -38,7 +38,7 @@ No test suite is configured.
 src/
   app/
     page.tsx           # the whole app — single screen, no routing
-    layout.tsx         # root layout (Nunito font, AccessibilityProvider)
+    layout.tsx         # root layout (Inter font, AccessibilityProvider)
     globals.css        # Tailwind + custom slider styles
     api/learn/route.ts # Gemini streaming endpoint (topic + loadLevel + sandMode)
   components/ui/

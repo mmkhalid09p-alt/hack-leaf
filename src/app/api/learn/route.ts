@@ -1,20 +1,14 @@
-import { streamText } from "ai";
+import { streamText, type ModelMessage } from "ai";
 import { getGeminiModel } from "@/lib/gemini";
 
-function buildPrompt({
-  topic,
-  loadLevel,
-  sandMode,
-}: {
-  topic: string;
-  loadLevel: number;
-  sandMode: boolean;
-}) {
-  return `You are an educational assistant for neurodiverse learners.
+interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
 
-Sensory load: ${loadLevel}/10
+function loadRules(loadLevel: number, sandMode: boolean) {
+  return `Sensory load: ${loadLevel}/10
 Sand mode: ${sandMode ? "on" : "off"}
-Topic: ${topic}
 
 Load 1-3: Rich explanation, full paragraphs, academic tone, real-world examples
 Load 4-6: Bullet points only, max 2 lines each, plain English
@@ -34,7 +28,13 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { topic?: string; loadLevel?: number; sandMode?: boolean };
+  let body: {
+    topic?: string;
+    loadLevel?: number;
+    sandMode?: boolean;
+    question?: string;
+    history?: ChatTurn[];
+  };
   try {
     body = await req.json();
   } catch {
@@ -50,10 +50,42 @@ export async function POST(req: Request) {
     typeof body.loadLevel === "number" && body.loadLevel >= 1 && body.loadLevel <= 10
       ? body.loadLevel
       : 5;
+  const sandMode = !!body.sandMode;
+  const question = body.question?.trim();
 
+  // ── Chat mode: the learner talks to the assistant about the topic ──
+  if (question) {
+    const history = Array.isArray(body.history) ? body.history.slice(-12) : [];
+    const messages: ModelMessage[] = [
+      {
+        role: "system",
+        content: `You are a friendly educational assistant for neurodiverse learners. The learner is revising the topic "${topic}" and is chatting with you about it.
+
+${loadRules(loadLevel, sandMode)}
+
+Answer their questions patiently. Stay on topic unless they clearly want to move on. Celebrate curiosity — never make them feel silly for asking.`,
+      },
+      ...history
+        .filter((t) => t?.content?.trim())
+        .map((t) => ({
+          role: t.role === "assistant" ? ("assistant" as const) : ("user" as const),
+          content: t.content,
+        })),
+      { role: "user", content: question },
+    ];
+
+    const result = streamText({ model: getGeminiModel(), messages });
+    return result.toTextStreamResponse();
+  }
+
+  // ── Explain mode: the initial adaptive explanation ──
   const result = streamText({
     model: getGeminiModel(),
-    prompt: buildPrompt({ topic, loadLevel, sandMode: !!body.sandMode }),
+    prompt: `You are an educational assistant for neurodiverse learners.
+
+${loadRules(loadLevel, sandMode)}
+
+Topic: ${topic}`,
   });
 
   return result.toTextStreamResponse();
