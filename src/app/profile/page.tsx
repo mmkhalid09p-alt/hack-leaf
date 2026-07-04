@@ -1,10 +1,17 @@
 "use client";
 
-import { useAccessibility } from "@/context/AccessibilityContext";
+import { useAccessibility, type ColourBlindMode } from "@/context/AccessibilityContext";
 import { DeafModeToggle } from "@/components/ui/DeafModeToggle";
 import { Navbar } from "@/components/ui/navbar";
 import { motion } from "framer-motion";
 import { Volume2, Eye, Palette, Sparkles } from "lucide-react";
+
+const COLOUR_BLIND_OPTIONS: { value: ColourBlindMode; label: string }[] = [
+  { value: "none", label: "None (default)" },
+  { value: "deuteranopia", label: "Deuteranopia — blue / yellow" },
+  { value: "protanopia", label: "Protanopia — blue / orange" },
+  { value: "monochromacy", label: "Monochromacy — greyscale" },
+];
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -16,7 +23,8 @@ const sectionVariants = {
 };
 
 export default function ProfilePage() {
-  const { deafMode, setDeafMode, sandMode, setSandMode } = useAccessibility();
+  const { deafMode, setDeafMode, sandMode, setSandMode, colourBlindMode, setColourBlindMode } =
+    useAccessibility();
 
   return (
     <>
@@ -123,30 +131,45 @@ export default function ProfilePage() {
             </div>
           </motion.section>
 
-          {/* ─── Colour Blind (stub) ─── */}
+          {/* ─── Colour Blind Mode ─── */}
           <motion.section
             custom={2}
             initial="hidden"
             animate="visible"
             variants={sectionVariants}
-            className="rounded-2xl border border-sky-800/30 bg-[#130d2a] p-6 mb-5 shadow-lg shadow-sky-950/20 opacity-60"
+            className="rounded-2xl border border-sky-800/30 bg-[#130d2a] p-6 mb-5 shadow-lg shadow-sky-950/20"
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 mb-5">
               <div className="p-2.5 rounded-xl bg-sky-900/30 border border-sky-700/30">
                 <Palette className="w-5 h-5 text-sky-400" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                  Colour Blind Mode
-                  <span className="text-xs font-normal bg-sky-900/40 text-sky-400 border border-sky-700/40 rounded-full px-2 py-0.5">
-                    Feature 4 — Coming soon
-                  </span>
-                </h2>
-                <p className="text-slate-500 text-sm mt-1">
-                  Deuteranopia · Protanopia · Monochromacy palettes coming in the next feature.
+                <h2 className="text-base font-semibold text-white">Colour Blind Mode</h2>
+                <p className="text-slate-400 text-sm mt-1 leading-relaxed">
+                  Swaps palettes so status and feedback never rely on red/green alone.
+                  Shape + text labels are used throughout NeuroLearn.
                 </p>
               </div>
             </div>
+
+            <select
+              value={colourBlindMode}
+              onChange={(e) => setColourBlindMode(e.target.value as ColourBlindMode)}
+              className="w-full p-3 rounded-xl border border-sky-700/40 bg-[#0a0614] text-slate-200 text-sm"
+              aria-label="Colour blind mode"
+            >
+              {COLOUR_BLIND_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            {colourBlindMode !== "none" && (
+              <p className="mt-3 text-sky-300 text-xs">
+                Active on the Learn page — blue/yellow or greyscale palettes applied.
+              </p>
+            )}
           </motion.section>
 
           {/* ─── Learn page CTA ─── */}

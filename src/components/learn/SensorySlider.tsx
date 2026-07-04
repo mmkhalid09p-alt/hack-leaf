@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-
-export function loadBand(level: number): "low" | "mid" | "high" | "max" {
-  if (level <= 3) return "low";
-  if (level <= 6) return "mid";
-  if (level <= 9) return "high";
-  return "max";
-}
+import { loadBand } from "@/lib/sensoryLoad";
 
 export const LOAD_EMOJI = {
   low: "😊",

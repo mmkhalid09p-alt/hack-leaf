@@ -2,14 +2,15 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BookOpen, Star, Volume2, Edit3 } from 'lucide-react';
 import ActivityCard from '@/components/ui/ActivityCard';
 
 export default function LanguageLiteracyPage() {
-  const handleStartActivity = (activityName: string) => {
-    console.log(`Starting ${activityName}`);
-    // TODO: Implement actual functionality for each activity
-    alert(`Starting ${activityName} - This feature is coming soon!`);
+  const router = useRouter();
+
+  const handleStartActivity = () => {
+    router.push('/learn');
   };
 
   const activities = [
@@ -18,28 +19,28 @@ export default function LanguageLiteracyPage() {
       title: "Read-Aloud Stories",
       description: "Listen to stories with highlighted text for better comprehension.",
       content: "Enjoy interactive stories read aloud, with each word highlighted as it is spoken. This helps improve reading fluency and comprehension skills.",
-      onStart: () => handleStartActivity("Read-Aloud Stories")
+      onStart: handleStartActivity
     },
     {
       icon: <Star className="h-6 w-6" />,
       title: "Stories Based on Interests",
       description: "Personalized stories tailored to your favorite topics.",
       content: "Select your interests and read stories that match your favorite themes and topics. This makes reading more engaging and relevant.",
-      onStart: () => handleStartActivity("Stories Based on Interests")
+      onStart: handleStartActivity
     },
     {
       icon: <BookOpen className="h-6 w-6" />,
       title: "Phonics Games",
       description: "Fun games to practice letter sounds and word building.",
       content: "Play interactive games that help you learn phonics, letter sounds, and how to build words. Perfect for developing reading foundations.",
-      onStart: () => handleStartActivity("Phonics Games")
+      onStart: handleStartActivity
     },
     {
       icon: <Edit3 className="h-6 w-6" />,
       title: "Dictation Games",
       description: "Practice writing and spelling by listening and typing.",
       content: "Listen to words or sentences and type them out to improve your spelling and writing skills. Great for auditory processing.",
-      onStart: () => handleStartActivity("Dictation Games")
+      onStart: handleStartActivity
     }
   ];
 

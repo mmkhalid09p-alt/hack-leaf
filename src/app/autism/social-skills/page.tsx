@@ -150,12 +150,14 @@ export default function SocialSkillsPage() {
                     </p>
                 </CardContent>
                 <CardFooter>
-                  <Button
-                    variant="outline"
-                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-100 hover:text-purple-800"
-                  >
-                    Start Activity
-                  </Button>
+                  <Link href="/learn" className="w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full border-purple-300 text-purple-700 hover:bg-purple-100 hover:text-purple-800"
+                    >
+                      Start Activity
+                    </Button>
+                  </Link>
                 </CardFooter>
               </Card>
             ))}

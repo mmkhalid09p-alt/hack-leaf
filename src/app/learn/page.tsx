@@ -7,6 +7,7 @@ import {
   type ColourBlindMode,
 } from "@/context/AccessibilityContext";
 import { loadBand } from "@/lib/sensoryLoad";
+import { getPalette } from "@/lib/colourBlindPalettes";
 import { Navbar } from "@/components/ui/navbar";
 import SensorySlider from "@/components/learn/SensorySlider";
 import { ContentRenderer } from "@/components/learn/ContentRenderer";
@@ -26,6 +27,7 @@ export default function LearnPage() {
   } = useAccessibility();
 
   const band = loadBand(sensoryLoad);
+  const cbPalette = !sandMode ? getPalette(colourBlindMode) : null;
 
   const [topicInput, setTopicInput] = useState("");
   const [hyperfocusInterest, setHyperfocusInterest] = useState("");
@@ -123,8 +125,13 @@ export default function LearnPage() {
 
       <main
         className={`min-h-screen pt-24 pb-16 px-4 md:px-8 transition-colors duration-500 ${
-          sandMode ? "bg-[#F5EFE0]" : "bg-[#0a0614]"
+          sandMode ? "bg-[#F5EFE0]" : cbPalette ? "" : "bg-[#0a0614]"
         }`}
+        style={
+          cbPalette && !sandMode
+            ? { backgroundColor: cbPalette.bg, color: cbPalette.text }
+            : undefined
+        }
       >
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="flex justify-between items-center">

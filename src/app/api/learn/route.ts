@@ -4,17 +4,20 @@ import { getGeminiModel } from "@/lib/gemini";
 function buildPrompt({
   topic,
   loadLevel,
+  learningDifference,
   hyperfocusInterest,
   sandMode,
 }: {
   topic: string;
   loadLevel: number;
+  learningDifference?: string;
   hyperfocusInterest?: string;
   sandMode: boolean;
 }) {
   return `You are an educational assistant for neurodiverse learners.
 
 Current sensory load: ${loadLevel}/10
+Learning difference: ${learningDifference?.trim() || "none"}
 Hyperfocus interest: ${hyperfocusInterest?.trim() || "none"}
 Sand mode: ${sandMode ? "on" : "off"}
 Topic: ${topic}
@@ -43,6 +46,7 @@ export async function POST(req: Request) {
   let body: {
     topic?: string;
     loadLevel?: number;
+    learningDifference?: string;
     hyperfocusInterest?: string;
     sandMode?: boolean;
   };
@@ -53,7 +57,8 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { topic, loadLevel, hyperfocusInterest, sandMode } = body;
+  const { topic, loadLevel, learningDifference, hyperfocusInterest, sandMode } =
+    body;
 
   if (!topic?.trim()) {
     return Response.json(
@@ -72,6 +77,7 @@ export async function POST(req: Request) {
     prompt: buildPrompt({
       topic: topic.trim(),
       loadLevel: level,
+      learningDifference,
       hyperfocusInterest,
       sandMode: !!sandMode,
     }),
