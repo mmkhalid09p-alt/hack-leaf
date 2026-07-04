@@ -55,7 +55,7 @@ export function Navbar() {
             Settings
           </Link>
         </nav>
-        
+
         <div className="hidden md:flex gap-4">
           {!isAuthPage && (
             <Button variant="default" size="sm" className="flex items-center gap-2">

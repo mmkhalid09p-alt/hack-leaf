@@ -1,213 +1,375 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccessibility } from "@/context/AccessibilityContext";
-import { BreathingCircle } from "@/components/ui/BreathingCircle";
-import { VisualCueFlash, VisualCueFlashHandle } from "@/components/ui/VisualCueFlash";
 import { Navbar } from "@/components/ui/navbar";
-import { VolumeX, Settings, ChevronRight } from "lucide-react";
-import Link from "next/link";
-import { CalmScreen } from "@/components/ui/CalmScreen";
-import { TTSHighlightRenderer } from "@/components/ui/TTSHighlightRenderer";
-
-// Sensory load → label & emoji
-const LOAD_META: Record<number, { label: string; emoji: string; colour: string }> = {
-  1: { label: "Clear", emoji: "😊", colour: "#7c3aed" },
-  2: { label: "Bright", emoji: "😊", colour: "#7c3aed" },
-  3: { label: "Calm", emoji: "😌", colour: "#6d28d9" },
-  4: { label: "Busy", emoji: "😐", colour: "#2563eb" },
-  5: { label: "Tiring", emoji: "😐", colour: "#2563eb" },
-  6: { label: "Strained", emoji: "😓", colour: "#0369a1" },
-  7: { label: "Heavy", emoji: "😰", colour: "#92400e" },
-  8: { label: "Overloaded", emoji: "😰", colour: "#b91c1c" },
-  9: { label: "Overwhelmed", emoji: "🌊", colour: "#991b1b" },
-  10: { label: "Crisis", emoji: "🌊", colour: "#450a0a" },
-};
+import SensorySlider from "@/components/learn/SensorySlider";
+import ContentRenderer from "@/components/learn/ContentRenderer";
+import CalmOverlay from "@/components/learn/CalmOverlay";
+import { Volume2, VolumeX, Eye, Sparkles, BookOpen, Settings } from "lucide-react";
 
 export default function LearnPage() {
-  const { deafMode, sensoryLoad, setSensoryLoad } = useAccessibility();
-  const flashRef = useRef<VisualCueFlashHandle>(null);
-  const [captionText, setCaptionText] = useState<string | null>(null);
+  const {
+    deafMode,
+    setDeafMode,
+    colourBlindMode,
+    setColourBlindMode,
+    sandMode,
+    setSandMode,
+    sensoryLoad,
+    setSensoryLoad,
+  } = useAccessibility();
 
-  const meta = LOAD_META[sensoryLoad] ?? LOAD_META[3];
+  // Local state for learning settings
+  const [topicInput, setTopicInput] = useState("");
+  const [activeTopic, setActiveTopic] = useState("");
+  const [learningDifference, setLearningDifference] = useState("none");
+  const [hyperfocusInterest, setHyperfocusInterest] = useState("");
 
-  // Simulate an audio cue (e.g. a notification arriving)
-  const simulateCue = useCallback(() => {
-    if (deafMode) {
-      // Visual replacement
-      flashRef.current?.flash("Notification");
-      setCaptionText("📢 New message received");
-      setTimeout(() => setCaptionText(null), 3000);
-    } else {
-      // In non-deaf mode we would play audio — stub for now
-      alert("🔊 Audio cue played (TTS / sound)");
+  // Content streaming state
+  const [streamedText, setStreamedText] = useState("");
+  const [streaming, setStreaming] = useState(false);
+  const [debouncedLevel, setDebouncedLevel] = useState(sensoryLoad);
+
+  // Show accessibility menu popover
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Debounce sensory load level changes to prevent spamming Gemini API
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedLevel(sensoryLoad);
+    }, 450);
+    return () => clearTimeout(handler);
+  }, [sensoryLoad]);
+
+  // Stream content from Gemini when input state triggers a request
+  useEffect(() => {
+    if (!activeTopic || debouncedLevel === 10) return;
+
+    let isMounted = true;
+    async function fetchStream() {
+      setStreaming(true);
+      setStreamedText("");
+      try {
+        const res = await fetch("/api/learn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic: activeTopic,
+            loadLevel: debouncedLevel,
+            learningDifference,
+            hyperfocusInterest,
+            sandMode,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to generate content");
+        }
+
+        if (res.body) {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let done = false;
+          let result = "";
+
+          while (!done) {
+            const { value, done: readerDone } = await reader.read();
+            done = readerDone;
+            if (value) {
+              const chunk = decoder.decode(value);
+              const lines = chunk.split("\n");
+              for (const line of lines) {
+                if (line.startsWith("0:")) {
+                  try {
+                    const textVal = JSON.parse(line.substring(2));
+                    result += textVal;
+                    if (isMounted) setStreamedText(result);
+                  } catch (e) {
+                    result += line.substring(2).replace(/"/g, "");
+                    if (isMounted) setStreamedText(result);
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Streaming error:", err);
+        if (isMounted) {
+          setStreamedText("An error occurred while generating learning content. Please check your API key or connection.");
+        }
+      } finally {
+        if (isMounted) setStreaming(false);
+      }
     }
-  }, [deafMode]);
 
+    fetchStream();
+    return () => {
+      isMounted = false;
+    };
+  }, [debouncedLevel, activeTopic, sandMode, learningDifference, hyperfocusInterest]);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (topicInput.trim()) {
+      setActiveTopic(topicInput.trim());
+    }
+  };
 
   return (
     <>
-      {/* Level 10 Takeover Screen */}
+      {/* Calm Overlay Takeover for Level 10 (Crisis/Overwhelmed) */}
       <AnimatePresence>
         {sensoryLoad === 10 && (
-          <CalmScreen deafMode={deafMode} onExit={() => setSensoryLoad(3)} />
+          <CalmOverlay
+            deafMode={deafMode}
+            sandMode={sandMode}
+            onExit={() => setSensoryLoad(5)}
+          />
         )}
       </AnimatePresence>
-      {/* Global visual cue flash overlay */}
-      <VisualCueFlash ref={flashRef} colour="#7c3aed" />
 
       <Navbar />
 
       <main
-        className="min-h-screen text-white px-4 py-10 transition-colors duration-700"
-        style={{ background: sensoryLoad >= 7 ? "#0d0d0d" : "#0a0614" }}
+        className={`min-h-screen pt-24 pb-16 px-4 md:px-8 transition-colors duration-500 ${
+          sandMode ? "bg-[#F5EFE0]" : "bg-[#0a0614]"
+        }`}
       >
         <div className="max-w-3xl mx-auto space-y-8">
+          {/* Header & Accessibility Popover controls */}
+          <div className="flex justify-between items-center">
+            <h1
+              className={`text-2xl font-bold tracking-tight ${
+                sandMode ? "text-[#4A3F2F]" : "text-white"
+              }`}
+            >
+              NeuroLearn Center
+            </h1>
 
-          {/* ── Deaf mode banner ── */}
-          <AnimatePresence>
-            {deafMode && (
-              <motion.div
-                key="deaf-banner"
-                initial={{ opacity: 0, y: -12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.35 }}
-                className="flex items-center gap-3 px-5 py-3 rounded-xl border border-violet-700/50 bg-violet-950/60 shadow-lg shadow-violet-900/30"
-                role="status"
-                aria-live="polite"
+            <div className="relative">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`p-2.5 rounded-xl border flex items-center gap-2 text-sm font-semibold transition-all ${
+                  sandMode
+                    ? "bg-[#FDF8EE] border-[#D9CCAA] text-[#4A3F2F] hover:bg-[#EDE3C8]"
+                    : "bg-[#130d2a] border-white/10 text-slate-300 hover:bg-white/5"
+                }`}
               >
-                <VolumeX className="w-5 h-5 text-violet-400 flex-shrink-0" />
-                <span className="text-sm font-medium text-violet-200">
-                  <strong>🔇 Audio Off</strong> — Visual Mode Active.
-                  All sounds replaced with flashes and captions.
-                </span>
-                <Link
-                  href="/profile"
-                  className="ml-auto text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors"
-                >
-                  Change <ChevronRight className="w-3 h-3" />
-                </Link>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <Settings className="w-4 h-4" />
+                Quick Controls
+              </button>
 
-          {/* ── Sensory Load Slider ── */}
-          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
-                  How&apos;s your brain feeling right now?
-                </h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-2xl">{meta.emoji}</span>
-                  <span className="text-lg font-bold" style={{ color: meta.colour }}>
-                    {sensoryLoad}/10 — {meta.label}
-                  </span>
+              {showSettings && (
+                <div
+                  className={`absolute right-0 mt-2 w-72 p-5 rounded-2xl border shadow-2xl z-40 space-y-4 ${
+                    sandMode
+                      ? "bg-[#FDF8EE] border-[#D9CCAA] text-[#4A3F2F]"
+                      : "bg-[#130d2a] border-white/10 text-slate-300"
+                  }`}
+                >
+                  <h3 className="font-bold border-b pb-2 text-sm uppercase tracking-wider opacity-80">
+                    Accessibility Toggles
+                  </h3>
+
+                  {/* Sand Mode */}
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm font-medium">Sand Mode (Calm UI)</span>
+                    <input
+                      type="checkbox"
+                      checked={sandMode}
+                      onChange={(e) => setSandMode(e.target.checked)}
+                      className="rounded"
+                    />
+                  </label>
+
+                  {/* Deaf Mode */}
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm font-medium">Deaf / HoH Mode</span>
+                    <input
+                      type="checkbox"
+                      checked={deafMode}
+                      onChange={(e) => setDeafMode(e.target.checked)}
+                      className="rounded"
+                    />
+                  </label>
+
+                  {/* Colour Blind Mode selection */}
+                  <div className="space-y-1.5">
+                    <span className="text-sm font-medium block">Colour Blind Mode</span>
+                    <select
+                      value={colourBlindMode}
+                      onChange={(e: any) => setColourBlindMode(e.target.value)}
+                      className={`w-full text-xs p-2 rounded-lg border ${
+                        sandMode
+                          ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F]"
+                          : "bg-[#0a0614] border-white/10 text-slate-300"
+                      }`}
+                    >
+                      <option value="none">None</option>
+                      <option value="deuteranopia">Deuteranopia (Red-Green)</option>
+                      <option value="protanopia">Protanopia (Red Weak)</option>
+                      <option value="monochromacy">Monochromacy (Greyscale)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sensory Load Slider Panel */}
+          <section
+            className={`p-6 border transition-all duration-300 ${
+              sandMode
+                ? "bg-[#FDF8EE] border-[#D9CCAA] rounded-3xl shadow-sm"
+                : "bg-[#130d2a] border-white/10 rounded-2xl shadow-xl"
+            }`}
+          >
+            <SensorySlider
+              level={sensoryLoad}
+              onChange={setSensoryLoad}
+              sandMode={sandMode}
+            />
+          </section>
+
+          {/* Main setup settings form */}
+          <section
+            className={`p-6 border transition-all duration-300 ${
+              sandMode
+                ? "bg-[#FDF8EE] border-[#D9CCAA] rounded-3xl shadow-sm"
+                : "bg-[#130d2a] border-white/10 rounded-2xl shadow-xl"
+            }`}
+          >
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Topic Input */}
+                <div className="space-y-2">
+                  <label
+                    className={`block text-xs font-bold uppercase tracking-wider ${
+                      sandMode ? "text-[#8C7B5E]" : "text-slate-400"
+                    }`}
+                  >
+                    Learning Topic
+                  </label>
+                  <input
+                    type="text"
+                    value={topicInput}
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    placeholder="e.g. Photosynthesis, Binary Code, Gravity"
+                    className={`w-full p-3 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-offset-2 ${
+                      sandMode
+                        ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F] placeholder-[#8C7B5E]/50 focus:ring-[#C2B280]"
+                        : "bg-[#0a0614] border-white/10 text-white placeholder-slate-500 focus:ring-violet-500"
+                    }`}
+                  />
+                </div>
+
+                {/* Hyperfocus Interest */}
+                <div className="space-y-2">
+                  <label
+                    className={`block text-xs font-bold uppercase tracking-wider ${
+                      sandMode ? "text-[#8C7B5E]" : "text-slate-400"
+                    }`}
+                  >
+                    Hyperfocus Interest (optional analogy)
+                  </label>
+                  <input
+                    type="text"
+                    value={hyperfocusInterest}
+                    onChange={(e) => setHyperfocusInterest(e.target.value)}
+                    placeholder="e.g. Minecraft, Trains, Space, Cooking"
+                    className={`w-full p-3 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-offset-2 ${
+                      sandMode
+                        ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F] placeholder-[#8C7B5E]/50 focus:ring-[#C2B280]"
+                        : "bg-[#0a0614] border-white/10 text-white placeholder-slate-500 focus:ring-violet-500"
+                    }`}
+                  />
                 </div>
               </div>
-              <Link
-                href="/profile"
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                title="Accessibility settings"
+
+              {/* Learning Difference selection */}
+              <div className="space-y-2">
+                <label
+                  className={`block text-xs font-bold uppercase tracking-wider ${
+                    sandMode ? "text-[#8C7B5E]" : "text-slate-400"
+                  }`}
+                >
+                  Personalize for Cognitive Differences
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "none", label: "General" },
+                    { id: "adhd", label: "ADHD (Analogy-rich)" },
+                    { id: "dyslexia", label: "Dyslexia (Clear/Formatted)" },
+                    { id: "autism", label: "Autism (Direct/Literal)" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setLearningDifference(opt.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                        learningDifference === opt.id
+                          ? sandMode
+                            ? "bg-[#C2B280] border-[#A0926A] text-[#4A3F2F]"
+                            : "bg-violet-600 border-violet-500 text-white"
+                          : sandMode
+                          ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F] hover:bg-[#EDE3C8]"
+                          : "bg-[#0a0614] border-white/5 text-slate-400 hover:bg-white/5"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={!topicInput.trim() || streaming}
+                className={`w-full py-3 rounded-xl font-bold transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer text-sm ${
+                  sandMode
+                    ? "bg-[#C2B280] text-[#4A3F2F] hover:bg-[#A0926A]"
+                    : "bg-violet-600 text-white hover:bg-violet-700"
+                }`}
               >
-                <Settings className="w-5 h-5 text-slate-400" />
-              </Link>
-            </div>
-
-            <input
-              id="sensory-slider"
-              type="range"
-              min={1}
-              max={10}
-              value={sensoryLoad}
-              onChange={(e) => setSensoryLoad(Number(e.target.value))}
-              className="w-full h-2 rounded-full cursor-pointer appearance-none"
-              style={{
-                background: `linear-gradient(to right, ${meta.colour} 0%, ${meta.colour} ${(sensoryLoad - 1) * 11.1}%, #1e1b4b ${(sensoryLoad - 1) * 11.1}%, #1e1b4b 100%)`,
-                accentColor: meta.colour,
-              }}
-              aria-label="Sensory load level 1 to 10"
-            />
-            <div className="flex justify-between text-xs text-slate-600 mt-1">
-              <span>1 — Clear</span>
-              <span>10 — Crisis</span>
-            </div>
+                {streaming ? "Generative AI Tailoring Content..." : "Start Adaptive Learning Session"}
+              </button>
+            </form>
           </section>
 
-          {/* ── Caption bar (always-on in deaf mode) ── */}
-          <AnimatePresence>
-            {deafMode && captionText && (
-              <motion.div
-                key="caption"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="rounded-xl border border-violet-700/40 bg-[#1a0f35] px-5 py-3 text-sm text-violet-200 font-medium"
-                role="status"
-                aria-live="assertive"
-              >
-                {captionText}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* ── Breathing Circle ── */}
-          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-8 shadow-xl flex flex-col items-center gap-2">
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
-              Breathing Exercise
-            </h2>
-            <BreathingCircle deafMode={deafMode} size={220} />
-          </section>
-
-          {/* ── Learning Passage with TTS & Word Highlighting ── */}
-          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl space-y-4">
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
-              Interactive Learning Content
-            </h2>
-            <p className="text-xs text-slate-500">
-              {sensoryLoad >= 7 && sensoryLoad <= 9 && !deafMode
-                ? "⚡ High load detected: Auto-triggering Text-to-Speech..."
-                : "Speech highlighting is available below. Tap Play to start."}
-            </p>
-            
-            <TTSHighlightRenderer
-              text="Neurodiversity is the idea that neurological differences like Autism, ADHD, and Dyslexia are natural variations of the human genome. Learning apps should adapt to the user's current mental bandwidth, offering streamlined bullet points or spoken text options depending on immediate sensory fatigue."
-              deafMode={deafMode}
-              autoPlay={sensoryLoad >= 7 && sensoryLoad <= 9}
-            />
-          </section>
-
-          {/* ── Notification cue simulator ── */}
-          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-450">Test Visual replacements</h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Fires a notification alert. In Deaf Mode, this will trigger a silent screen edge flash.
-              </p>
-            </div>
-            
-            <button
-              id="cue-btn"
-              onClick={simulateCue}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl border border-violet-850 bg-violet-900/20 text-violet-300 font-semibold text-sm hover:bg-violet-900/40 transition-all duration-200"
+          {/* Main output content renderer card */}
+          {activeTopic && (
+            <section
+              className={`p-8 border transition-all duration-500 relative ${
+                sandMode
+                  ? "bg-[#FDF8EE] border-[#D9CCAA] rounded-3xl shadow-sm"
+                  : "bg-[#130d2a] border-white/10 rounded-2xl shadow-xl"
+              }`}
             >
-              🔔 {deafMode ? "Trigger Visual Flash" : "Trigger Audio Cue"}
-            </button>
-          </section>
+              <div className="flex justify-between items-center mb-6">
+                <h3
+                  className={`text-xs uppercase font-bold tracking-widest ${
+                    sandMode ? "text-[#8C7B5E]" : "text-slate-400"
+                  }`}
+                >
+                  Topic: {activeTopic}
+                </h3>
+                {streaming && (
+                  <span className="text-xs italic text-violet-400 animate-pulse">
+                    Streaming content...
+                  </span>
+                )}
+              </div>
 
-          {/* ── Settings CTA ── */}
-          <div className="text-center pb-4">
-            <Link
-              href="/profile"
-              className="inline-flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              Manage accessibility settings
-            </Link>
-          </div>
+              <ContentRenderer
+                text={streamedText}
+                level={sensoryLoad}
+                sandMode={sandMode}
+              />
+            </section>
+          )}
         </div>
       </main>
     </>
