@@ -9,7 +9,7 @@ gamified, module-based therapies for Autism Spectrum Disorder and Dyslexia.
 
 See [`PRODUCT_PLAN.md`](./PRODUCT_PLAN.md) for the NeuroLearn direction — a sensory-load-adaptive
 learning experience (load meter, deaf mode, colour-blind palettes, sand mode, Gemini-driven
-content) layered on top of this codebase.
+content, flash cards, and a companion browser extension) layered on top of this codebase.
 
 ## Stack
 
