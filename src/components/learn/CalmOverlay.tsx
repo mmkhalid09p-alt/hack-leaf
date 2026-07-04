@@ -33,29 +33,13 @@ export default function CalmOverlay({ deafMode, sandMode, onExit }: CalmOverlayP
         if (res.ok && res.body) {
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
-          let done = false;
           let result = "";
 
-          while (!done) {
-            const { value, done: readerDone } = await reader.read();
-            done = readerDone;
-            if (value) {
-              const chunk = decoder.decode(value);
-              const lines = chunk.split("\n");
-              for (const line of lines) {
-                if (line.startsWith('0:')) {
-                  try {
-                    const textVal = JSON.parse(line.substring(2));
-                    result += textVal;
-                    if (isMounted) setAffirmation(result);
-                  } catch {
-                    // fall back to appending raw string if JSON parse fails
-                    result += line.substring(2).replace(/"/g, '');
-                    if (isMounted) setAffirmation(result);
-                  }
-                }
-              }
-            }
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            result += decoder.decode(value, { stream: true });
+            if (isMounted) setAffirmation(result);
           }
         }
       } catch (err) {

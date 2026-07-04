@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useRef, useState, useCallback, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAccessibility } from "@/context/AccessibilityContext";
+import {
+  useAccessibility,
+  type ColourBlindMode,
+} from "@/context/AccessibilityContext";
+import { loadBand } from "@/lib/sensoryLoad";
 import { Navbar } from "@/components/ui/navbar";
 import SensorySlider from "@/components/learn/SensorySlider";
-import ContentRenderer from "@/components/learn/ContentRenderer";
+import { ContentRenderer } from "@/components/learn/ContentRenderer";
 import CalmOverlay from "@/components/learn/CalmOverlay";
-import { Volume2, VolumeX, Eye, Sparkles, BookOpen, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 
 export default function LearnPage() {
   const {
@@ -21,106 +25,90 @@ export default function LearnPage() {
     setSensoryLoad,
   } = useAccessibility();
 
-  // Local state for learning settings
+  const band = loadBand(sensoryLoad);
+
   const [topicInput, setTopicInput] = useState("");
-  const [activeTopic, setActiveTopic] = useState("");
-  const [learningDifference, setLearningDifference] = useState("none");
   const [hyperfocusInterest, setHyperfocusInterest] = useState("");
-
-  // Content streaming state
-  const [streamedText, setStreamedText] = useState("");
-  const [streaming, setStreaming] = useState(false);
-  const [debouncedLevel, setDebouncedLevel] = useState(sensoryLoad);
-
-  // Show accessibility menu popover
+  const [learningDifference, setLearningDifference] = useState("none");
+  const [topic, setTopic] = useState<string | null>(null);
+  const [content, setContent] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Debounce sensory load level changes to prevent spamming Gemini API
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedLevel(sensoryLoad);
-    }, 450);
-    return () => clearTimeout(handler);
-  }, [sensoryLoad]);
+  const generateContent = useCallback(
+    async (topicValue: string, loadLevel: number) => {
+      if (loadLevel === 10) return;
 
-  // Stream content from Gemini when input state triggers a request
-  useEffect(() => {
-    if (!activeTopic || debouncedLevel === 10) return;
+      setIsGenerating(true);
+      setGenError(null);
+      setContent("");
 
-    let isMounted = true;
-    async function fetchStream() {
-      setStreaming(true);
-      setStreamedText("");
       try {
         const res = await fetch("/api/learn", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            topic: activeTopic,
-            loadLevel: debouncedLevel,
-            learningDifference,
-            hyperfocusInterest,
+            topic: topicValue,
+            loadLevel,
+            hyperfocusInterest: hyperfocusInterest.trim() || undefined,
+            learningDifference:
+              learningDifference !== "none" ? learningDifference : undefined,
             sandMode,
           }),
         });
 
-        if (!res.ok) {
-          throw new Error("Failed to generate content");
+        if (!res.ok || !res.body) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error || "Failed to generate content.");
         }
 
-        if (res.body) {
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let done = false;
-          let result = "";
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = "";
 
-          while (!done) {
-            const { value, done: readerDone } = await reader.read();
-            done = readerDone;
-            if (value) {
-              const chunk = decoder.decode(value);
-              const lines = chunk.split("\n");
-              for (const line of lines) {
-                if (line.startsWith("0:")) {
-                  try {
-                    const textVal = JSON.parse(line.substring(2));
-                    result += textVal;
-                    if (isMounted) setStreamedText(result);
-                  } catch (e) {
-                    result += line.substring(2).replace(/"/g, "");
-                    if (isMounted) setStreamedText(result);
-                  }
-                }
-              }
-            }
-          }
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          accumulated += decoder.decode(value, { stream: true });
+          setContent(accumulated);
         }
       } catch (err) {
-        console.error("Streaming error:", err);
-        if (isMounted) {
-          setStreamedText("An error occurred while generating learning content. Please check your API key or connection.");
-        }
+        setGenError(
+          err instanceof Error ? err.message : "Something went wrong."
+        );
       } finally {
-        if (isMounted) setStreaming(false);
+        setIsGenerating(false);
       }
-    }
+    },
+    [hyperfocusInterest, learningDifference, sandMode]
+  );
 
-    fetchStream();
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedLevel, activeTopic, sandMode, learningDifference, hyperfocusInterest]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (topicInput.trim()) {
-      setActiveTopic(topicInput.trim());
-    }
+    const value = topicInput.trim();
+    if (!value || isGenerating) return;
+    setTopic(value);
+    void generateContent(value, sensoryLoad);
   };
+
+  const generateRef = useRef(generateContent);
+  const topicRef = useRef(topic);
+  useEffect(() => {
+    generateRef.current = generateContent;
+    topicRef.current = topic;
+  });
+
+  useEffect(() => {
+    if (!topicRef.current) return;
+    const timeout = setTimeout(() => {
+      if (topicRef.current) void generateRef.current(topicRef.current, sensoryLoad);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [sensoryLoad, sandMode]);
 
   return (
     <>
-      {/* Calm Overlay Takeover for Level 10 (Crisis/Overwhelmed) */}
       <AnimatePresence>
         {sensoryLoad === 10 && (
           <CalmOverlay
@@ -139,7 +127,6 @@ export default function LearnPage() {
         }`}
       >
         <div className="max-w-3xl mx-auto space-y-8">
-          {/* Header & Accessibility Popover controls */}
           <div className="flex justify-between items-center">
             <h1
               className={`text-2xl font-bold tracking-tight ${
@@ -174,7 +161,6 @@ export default function LearnPage() {
                     Accessibility Toggles
                   </h3>
 
-                  {/* Sand Mode */}
                   <label className="flex items-center justify-between cursor-pointer">
                     <span className="text-sm font-medium">Sand Mode (Calm UI)</span>
                     <input
@@ -185,7 +171,6 @@ export default function LearnPage() {
                     />
                   </label>
 
-                  {/* Deaf Mode */}
                   <label className="flex items-center justify-between cursor-pointer">
                     <span className="text-sm font-medium">Deaf / HoH Mode</span>
                     <input
@@ -196,12 +181,13 @@ export default function LearnPage() {
                     />
                   </label>
 
-                  {/* Colour Blind Mode selection */}
                   <div className="space-y-1.5">
                     <span className="text-sm font-medium block">Colour Blind Mode</span>
                     <select
                       value={colourBlindMode}
-                      onChange={(e: any) => setColourBlindMode(e.target.value)}
+                      onChange={(e) =>
+                        setColourBlindMode(e.target.value as ColourBlindMode)
+                      }
                       className={`w-full text-xs p-2 rounded-lg border ${
                         sandMode
                           ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F]"
@@ -219,7 +205,6 @@ export default function LearnPage() {
             </div>
           </div>
 
-          {/* Sensory Load Slider Panel */}
           <section
             className={`p-6 border transition-all duration-300 ${
               sandMode
@@ -234,7 +219,6 @@ export default function LearnPage() {
             />
           </section>
 
-          {/* Main setup settings form */}
           <section
             className={`p-6 border transition-all duration-300 ${
               sandMode
@@ -244,7 +228,6 @@ export default function LearnPage() {
           >
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Topic Input */}
                 <div className="space-y-2">
                   <label
                     className={`block text-xs font-bold uppercase tracking-wider ${
@@ -258,6 +241,7 @@ export default function LearnPage() {
                     value={topicInput}
                     onChange={(e) => setTopicInput(e.target.value)}
                     placeholder="e.g. Photosynthesis, Binary Code, Gravity"
+                    disabled={isGenerating}
                     className={`w-full p-3 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-offset-2 ${
                       sandMode
                         ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F] placeholder-[#8C7B5E]/50 focus:ring-[#C2B280]"
@@ -266,7 +250,6 @@ export default function LearnPage() {
                   />
                 </div>
 
-                {/* Hyperfocus Interest */}
                 <div className="space-y-2">
                   <label
                     className={`block text-xs font-bold uppercase tracking-wider ${
@@ -280,6 +263,7 @@ export default function LearnPage() {
                     value={hyperfocusInterest}
                     onChange={(e) => setHyperfocusInterest(e.target.value)}
                     placeholder="e.g. Minecraft, Trains, Space, Cooking"
+                    disabled={isGenerating}
                     className={`w-full p-3 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-offset-2 ${
                       sandMode
                         ? "bg-[#F5EFE0] border-[#D9CCAA] text-[#4A3F2F] placeholder-[#8C7B5E]/50 focus:ring-[#C2B280]"
@@ -289,7 +273,6 @@ export default function LearnPage() {
                 </div>
               </div>
 
-              {/* Learning Difference selection */}
               <div className="space-y-2">
                 <label
                   className={`block text-xs font-bold uppercase tracking-wider ${
@@ -327,20 +310,23 @@ export default function LearnPage() {
 
               <button
                 type="submit"
-                disabled={!topicInput.trim() || streaming}
+                disabled={!topicInput.trim() || isGenerating}
                 className={`w-full py-3 rounded-xl font-bold transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer text-sm ${
                   sandMode
                     ? "bg-[#C2B280] text-[#4A3F2F] hover:bg-[#A0926A]"
                     : "bg-violet-600 text-white hover:bg-violet-700"
                 }`}
               >
-                {streaming ? "Generative AI Tailoring Content..." : "Start Adaptive Learning Session"}
+                {isGenerating
+                  ? "Generative AI Tailoring Content..."
+                  : topic
+                  ? "Regenerate"
+                  : "Start Adaptive Learning Session"}
               </button>
             </form>
           </section>
 
-          {/* Main output content renderer card */}
-          {activeTopic && (
+          {topic && (
             <section
               className={`p-8 border transition-all duration-500 relative ${
                 sandMode
@@ -354,20 +340,53 @@ export default function LearnPage() {
                     sandMode ? "text-[#8C7B5E]" : "text-slate-400"
                   }`}
                 >
-                  Topic: {activeTopic}
+                  Topic: {topic}
                 </h3>
-                {streaming && (
+                {isGenerating && (
                   <span className="text-xs italic text-violet-400 animate-pulse">
                     Streaming content...
                   </span>
                 )}
               </div>
 
-              <ContentRenderer
-                text={streamedText}
-                level={sensoryLoad}
-                sandMode={sandMode}
-              />
+              {genError && (
+                <p className="text-xs text-red-400 mb-4">
+                  {genError.includes("GOOGLE_GENERATIVE_AI_API_KEY")
+                    ? "Add your AI Studio key to .env.local, then restart the dev server."
+                    : genError}
+                </p>
+              )}
+
+              {!genError && (
+                <p
+                  className={`text-xs mb-4 ${
+                    sandMode ? "text-[#8C7B5E]" : "text-slate-500"
+                  }`}
+                >
+                  {sensoryLoad <= 3
+                    ? "Rich reading with speech + word highlighting."
+                    : sensoryLoad <= 6
+                    ? "Simplified into calm bullet points."
+                    : "One idea at a time. Read aloud automatically."}
+                </p>
+              )}
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${topic}-${band}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ContentRenderer
+                    text={content ?? ""}
+                    level={sensoryLoad}
+                    deafMode={deafMode}
+                    isStreaming={isGenerating}
+                  />
+                </motion.div>
+              </AnimatePresence>
             </section>
           )}
         </div>
