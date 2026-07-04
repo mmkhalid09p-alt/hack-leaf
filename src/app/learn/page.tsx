@@ -6,9 +6,10 @@ import { useAccessibility } from "@/context/AccessibilityContext";
 import { BreathingCircle } from "@/components/ui/BreathingCircle";
 import { VisualCueFlash, VisualCueFlashHandle } from "@/components/ui/VisualCueFlash";
 import { Navbar } from "@/components/ui/navbar";
-import { Volume2, VolumeX, Settings, ChevronRight } from "lucide-react";
+import { VolumeX, Settings, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { CalmScreen } from "@/components/ui/CalmScreen";
+import { TTSHighlightRenderer } from "@/components/ui/TTSHighlightRenderer";
 
 // Sensory load → label & emoji
 const LOAD_META: Record<number, { label: string; emoji: string; colour: string }> = {
@@ -44,21 +45,7 @@ export default function LearnPage() {
     }
   }, [deafMode]);
 
-  // Simple TTS stub — suppressed in deaf mode
-  const speakContent = useCallback(() => {
-    if (deafMode) {
-      setCaptionText("📖 Content would be read aloud — visual captions shown instead");
-      flashRef.current?.flash("TTS suppressed");
-      setTimeout(() => setCaptionText(null), 4000);
-      return;
-    }
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      const utt = new SpeechSynthesisUtterance(
-        "This is a sample learning passage. In non-deaf mode, text-to-speech reads your content aloud."
-      );
-      window.speechSynthesis.speak(utt);
-    }
-  }, [deafMode]);
+
 
   return (
     <>
@@ -175,47 +162,40 @@ export default function LearnPage() {
             <BreathingCircle deafMode={deafMode} size={220} />
           </section>
 
-          {/* ── Simulate audio cues (demo panel) ── */}
-          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl">
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
-              Demo — Audio Cue Replacement
+          {/* ── Learning Passage with TTS & Word Highlighting ── */}
+          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl space-y-4">
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">
+              Interactive Learning Content
             </h2>
-            <div className="flex flex-col sm:flex-row gap-3">
-              {/* TTS button */}
-              <button
-                id="tts-btn"
-                onClick={speakContent}
-                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl border transition-all duration-200 font-semibold text-sm"
-                style={{
-                  borderColor: deafMode ? "#4c1d95" : "#4c1d95",
-                  background: deafMode ? "rgba(76,29,149,0.15)" : "rgba(76,29,149,0.3)",
-                  color: deafMode ? "#a78bfa" : "#c4b5fd",
-                }}
-              >
-                {deafMode ? (
-                  <VolumeX className="w-4 h-4" />
-                ) : (
-                  <Volume2 className="w-4 h-4" />
-                )}
-                {deafMode ? "TTS → Caption (Visual)" : "Speak Content (TTS)"}
-              </button>
-
-              {/* Notification cue button */}
-              <button
-                id="cue-btn"
-                onClick={simulateCue}
-                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-violet-800/50 bg-violet-900/20 text-violet-300 font-semibold text-sm hover:bg-violet-900/40 transition-all duration-200"
-              >
-                🔔
-                {deafMode ? "Trigger Visual Flash" : "Trigger Audio Cue"}
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-600 mt-3 text-center">
-              {deafMode
-                ? "Deaf Mode ON — pressing either button fires a visual replacement instead of audio."
-                : "Deaf Mode OFF — audio plays. Turn it on in Profile → Settings."}
+            <p className="text-xs text-slate-500">
+              {sensoryLoad >= 7 && sensoryLoad <= 9 && !deafMode
+                ? "⚡ High load detected: Auto-triggering Text-to-Speech..."
+                : "Speech highlighting is available below. Tap Play to start."}
             </p>
+            
+            <TTSHighlightRenderer
+              text="Neurodiversity is the idea that neurological differences like Autism, ADHD, and Dyslexia are natural variations of the human genome. Learning apps should adapt to the user's current mental bandwidth, offering streamlined bullet points or spoken text options depending on immediate sensory fatigue."
+              deafMode={deafMode}
+              autoPlay={sensoryLoad >= 7 && sensoryLoad <= 9}
+            />
+          </section>
+
+          {/* ── Notification cue simulator ── */}
+          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-450">Test Visual replacements</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Fires a notification alert. In Deaf Mode, this will trigger a silent screen edge flash.
+              </p>
+            </div>
+            
+            <button
+              id="cue-btn"
+              onClick={simulateCue}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl border border-violet-850 bg-violet-900/20 text-violet-300 font-semibold text-sm hover:bg-violet-900/40 transition-all duration-200"
+            >
+              🔔 {deafMode ? "Trigger Visual Flash" : "Trigger Audio Cue"}
+            </button>
           </section>
 
           {/* ── Settings CTA ── */}
