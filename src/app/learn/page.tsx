@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccessibility } from "@/context/AccessibilityContext";
+import { loadBand } from "@/lib/sensoryLoad";
 import { BreathingCircle } from "@/components/ui/BreathingCircle";
 import { VisualCueFlash, VisualCueFlashHandle } from "@/components/ui/VisualCueFlash";
 import { Navbar } from "@/components/ui/navbar";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { VolumeX, Settings, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { CalmScreen } from "@/components/ui/CalmScreen";
-import { TTSHighlightRenderer } from "@/components/ui/TTSHighlightRenderer";
+import { ContentRenderer } from "@/components/learn/ContentRenderer";
 
 const SAMPLE_TEXT =
   "Neurodiversity is the idea that neurological differences like Autism, ADHD, and Dyslexia are natural variations of the human genome. Learning apps should adapt to the user's current mental bandwidth, offering streamlined bullet points or spoken text options depending on immediate sensory fatigue.";
@@ -35,6 +36,7 @@ export default function LearnPage() {
   const [captionText, setCaptionText] = useState<string | null>(null);
 
   const meta = LOAD_META[sensoryLoad] ?? LOAD_META[3];
+  const band = loadBand(sensoryLoad);
 
   // ── Topic input + Gemini-adaptive content generation ──
   const [topicInput, setTopicInput] = useState("");
@@ -96,16 +98,25 @@ export default function LearnPage() {
     void generateContent(value, sensoryLoad);
   };
 
+  // Keep refs to the latest topic + generator so the debounced regeneration
+  // effect below stays fresh without re-firing on every keystroke.
+  const generateRef = useRef(generateContent);
+  const topicRef = useRef(topic);
+  useEffect(() => {
+    generateRef.current = generateContent;
+    topicRef.current = topic;
+  });
+
   // Regenerate when sensory load or sand mode shifts mid-session, debounced —
   // "every slider move = new Gemini call" (per PRODUCT_PLAN.md), but only once a
-  // topic has actually been submitted.
+  // topic has been submitted. Uses refs above so no stale closure and no need to
+  // depend on the fast-changing input fields.
   useEffect(() => {
-    if (!topic) return;
+    if (!topicRef.current) return;
     const timeout = setTimeout(() => {
-      void generateContent(topic, sensoryLoad);
+      if (topicRef.current) void generateRef.current(topicRef.current, sensoryLoad);
     }, 400);
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sensoryLoad, sandMode]);
 
   // Simulate an audio cue (e.g. a notification arriving)
@@ -230,13 +241,24 @@ export default function LearnPage() {
             )}
           </AnimatePresence>
 
-          {/* ── Breathing Circle ── */}
-          <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-8 shadow-xl flex flex-col items-center gap-2">
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
-              Breathing Exercise
-            </h2>
-            <BreathingCircle deafMode={deafMode} size={220} />
-          </section>
+          {/* ── Breathing Circle — surfaced only when load is elevated ── */}
+          <AnimatePresence>
+            {sensoryLoad >= 6 && (
+              <motion.section
+                key="breathing"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4 }}
+                className="overflow-hidden rounded-2xl border border-white/10 bg-[#130d2a] p-8 shadow-xl flex flex-col items-center gap-2"
+              >
+                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
+                  Take a breath
+                </h2>
+                <BreathingCircle deafMode={deafMode} size={220} />
+              </motion.section>
+            )}
+          </AnimatePresence>
 
           {/* ── Topic Input ── */}
           <section className="rounded-2xl border border-white/10 bg-[#130d2a] p-6 shadow-xl space-y-4">
@@ -292,30 +314,28 @@ export default function LearnPage() {
             {!genError && (
               <p className="text-xs text-slate-500">
                 {!topic
-                  ? "Enter a topic above to generate content that adapts to your sensory load."
-                  : sensoryLoad >= 7 && sensoryLoad <= 9 && !deafMode
-                  ? "⚡ High load detected: Auto-triggering Text-to-Speech..."
-                  : "Speech highlighting is available below. Tap Play to start."}
+                  ? "Enter a topic above — the layout adapts to your sensory load as you move the slider."
+                  : sensoryLoad <= 3
+                  ? "Rich reading with speech + word highlighting."
+                  : sensoryLoad <= 6
+                  ? "Simplified into calm bullet points."
+                  : "One idea at a time. Read aloud automatically."}
               </p>
             )}
 
             <AnimatePresence mode="wait">
               <motion.div
-                key={topic ? `${topic}-${meta.label}` : "sample"}
+                key={`${topic ? "topic" : "sample"}-${band}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <TTSHighlightRenderer
+                <ContentRenderer
                   text={content || (topic ? "" : SAMPLE_TEXT)}
+                  level={sensoryLoad}
                   deafMode={deafMode}
-                  autoPlay={
-                    !!topic &&
-                    !isGenerating &&
-                    sensoryLoad >= 7 &&
-                    sensoryLoad <= 9
-                  }
+                  isStreaming={isGenerating}
                 />
               </motion.div>
             </AnimatePresence>
