@@ -29,6 +29,7 @@ import {
   Copy,
   RefreshCw,
   History,
+  LifeBuoy,
 } from "lucide-react";
 import {
   useAccessibility,
@@ -37,6 +38,7 @@ import {
 import { loadBand, type LoadBand } from "@/lib/sensoryLoad";
 import { getPalette } from "@/lib/colourBlindPalettes";
 import { BreathingCircle } from "@/components/ui/BreathingCircle";
+import { Pet } from "@/components/Pet";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Theme: clean study-tool palette that morphs with the load band
@@ -166,6 +168,30 @@ const SUGGESTIONS = [
   "Food chains",
   "Romeo and Juliet",
 ];
+
+// Coping notes shown under the meter when the load is high — what to do,
+// in bullet points. Only for the overstimulated bands (mid / high); load 10
+// hands over to the full calm/breathing screen instead.
+const OVERSTIM_TIPS: Partial<Record<LoadBand, { title: string; tips: string[] }>> = {
+  mid: {
+    title: "Feeling a bit busy? Try this",
+    tips: [
+      "Take one slow breath before the next point",
+      "Read just one line at a time — no need to rush",
+      "It's okay to slow down. There's no timer here",
+    ],
+  },
+  high: {
+    title: "Feeling overwhelmed? Here's what can help",
+    tips: [
+      "Breathe in for 4 seconds, out for 6",
+      "Soften your shoulders and unclench your jaw",
+      "Look away from the screen for a moment",
+      "Have a sip of water or a short stretch",
+      "Slide the meter down if this is still too much",
+    ],
+  },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
@@ -377,6 +403,9 @@ export default function Home() {
           </p>
         </motion.section>
 
+        {/* ── Overstimulation coping notes — appear under the meter ── */}
+        <OverstimTips band={band} theme={theme} />
+
         {/* ── Topic input (hidden at load 10) ────────────────── */}
         <AnimatePresence>
           {!calm && (
@@ -585,6 +614,15 @@ export default function Home() {
           )}
         </main>
       </div>
+
+      {/* ── Study buddy pet ──────────────────────────────────── */}
+      <Pet
+        band={band}
+        sandMode={sandMode}
+        isGenerating={isGenerating}
+        justFinished={doneFlash}
+        theme={theme}
+      />
 
       {/* ── Settings drawer ──────────────────────────────────── */}
       <SettingsDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} theme={theme} />
@@ -825,6 +863,59 @@ function AdaptiveContent({
         {safeIndex + 1} of {chunks.length}
       </p>
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Overstimulation coping notes — bullet-point "what to do" under the meter
+// ─────────────────────────────────────────────────────────────────────────────
+
+function OverstimTips({ band, theme }: { band: LoadBand; theme: Theme }) {
+  const info = OVERSTIM_TIPS[band];
+  return (
+    <AnimatePresence mode="wait">
+      {info && (
+        <motion.section
+          key={band}
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="overflow-hidden"
+          aria-live="polite"
+        >
+          <div
+            className="mb-4 rounded-2xl border p-5 shadow-sm transition-colors duration-700"
+            style={{ borderColor: theme.accent, backgroundColor: theme.soft }}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <LifeBuoy className="h-4 w-4" style={{ color: theme.accent }} aria-hidden />
+              <h3 className="text-sm font-bold" style={{ color: theme.accent }}>
+                {info.title}
+              </h3>
+            </div>
+            <ul className="space-y-2.5">
+              {info.tips.map((tip, i) => (
+                <motion.li
+                  key={tip}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: Math.min(i * 0.05, 0.35), duration: 0.25 }}
+                  className="flex gap-2.5 text-sm font-medium leading-snug"
+                  style={{ color: theme.text }}
+                >
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                    style={{ backgroundColor: theme.accent }}
+                    aria-hidden
+                  />
+                  <span>{tip}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+        </motion.section>
+      )}
+    </AnimatePresence>
   );
 }
 
